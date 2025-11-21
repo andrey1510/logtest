@@ -1,4 +1,4 @@
-package com.logtest.masker;
+package com.logtest.masker.filters;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;

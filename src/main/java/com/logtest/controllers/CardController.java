@@ -1,7 +1,6 @@
 package com.logtest.controllers;
 
 import com.logtest.dto.CardDto;
-import com.logtest.masker.MaskingUtil;
 import com.logtest.masker.annotations.EnableMasking;
 import com.logtest.services.CardService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import static com.logtest.masker.Masker.mask;
+
 @Slf4j
 @RestController
 @RequiredArgsConstructor
@@ -21,24 +22,22 @@ public class CardController {
 
     private final CardService cardService;
 
-    private final MaskingUtil maskingUtil;
-
-    @EnableMasking      //постановка аннотации включает маскировку
-    @Operation(description = "Маскировка через аннотацию.")
+    @EnableMasking(false)
+    @Operation(description = "пример номера карты - 1234567890123456")
     @PostMapping("/masked")
     public ResponseEntity<CardDto> createCard(@RequestBody CardDto cardDto) {
 
         log.info("проверка маскировки DTO в логгере - должна работать при указании @EnableMasking: {}",
-            maskingUtil.maskDto(cardDto));
+            mask(cardDto));
         System.out.println("проверка маскировки DTO в sout - должна работать при указании @EnableMasking: " +
-            maskingUtil.maskDto(cardDto));
+            mask(cardDto));
         log.info("проверка маскировки DTO в логгере - НЕ должна работать никогда {}", cardDto);
         System.out.println("проверка маскировки DTO в sout - НЕ должна работать никогда: " + cardDto);
 
-        log.info("Контроллер - пришло DTO для сохранения: {}", maskingUtil.maskDto(cardDto));
+        log.info("Контроллер - пришло DTO для сохранения: {}", mask(cardDto));
 
         CardDto savedDto = cardService.createCard(cardDto);
-        log.info("Контроллер - пришло сохраненное DTO: {}", maskingUtil.maskDto(savedDto));
+        log.info("Контроллер - пришло сохраненное DTO: {}", mask(savedDto));
 
         return ResponseEntity.ok(savedDto);
     }

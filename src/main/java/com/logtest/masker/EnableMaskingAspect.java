@@ -17,24 +17,31 @@ public class EnableMaskingAspect {
 
     @Around("@annotation(enableMasking)")
     public Object aroundAnnotatedMethod(ProceedingJoinPoint joinPoint, EnableMasking enableMasking) throws Throwable {
-        return maskingContext.callWithMasking(() -> {
-            try {
-                return joinPoint.proceed();
-            } catch (Throwable e) {
-                throw new RuntimeException(e);
-            }
-        });
+        if (enableMasking.value()) {
+            return maskingContext.callWithMasking(() -> {
+                try {
+                    return joinPoint.proceed();
+                } catch (Throwable e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        } else {
+            return joinPoint.proceed();
+        }
     }
 
     @Around("@within(enableMasking)")
     public Object aroundAnnotatedClass(ProceedingJoinPoint joinPoint, EnableMasking enableMasking) throws Throwable {
-        return maskingContext.callWithMasking(() -> {
-            try {
-                return joinPoint.proceed();
-            } catch (Throwable e) {
-                throw new RuntimeException(e);
-            }
-        });
+        if (enableMasking.value()) {
+            return maskingContext.callWithMasking(() -> {
+                try {
+                    return joinPoint.proceed();
+                } catch (Throwable e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        } else {
+            return joinPoint.proceed();
+        }
     }
 }
-

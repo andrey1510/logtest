@@ -35,7 +35,10 @@ public class MaskingContext {
         } catch (Exception e) {
             throw new RuntimeException("Masking context execution failed", e);
         } finally {
-            if (!originalState) disableMasking();
+            if (!originalState) {
+                disableMasking();
+                NEED_MASK.remove();
+            }
         }
     }
 }

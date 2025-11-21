@@ -1,9 +1,10 @@
-package com.logtest.masker;
+package com.logtest.masker.filters;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
+import com.logtest.masker.MaskingContext;
 import com.logtest.masker.annotations.MaskedProperty;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -15,8 +16,8 @@ public class MaskingPropertyFilter extends SimpleBeanPropertyFilter {
     private final MaskingContext maskingContext;
 
     @Override
-    public void serializeAsField(Object pojo, JsonGenerator gen, SerializerProvider provider, BeanPropertyWriter writer) throws Exception {
-
+    public void serializeAsField(
+        Object pojo, JsonGenerator generator, SerializerProvider provider, BeanPropertyWriter writer) throws Exception {
         if (maskingContext.isNeedMask()) {
             MaskedProperty maskedProperty = writer.getAnnotation(MaskedProperty.class);
 
@@ -25,15 +26,15 @@ public class MaskingPropertyFilter extends SimpleBeanPropertyFilter {
                 if (value != null) {
                     String maskedValue = value.toString().replaceAll(
                         maskedProperty.pattern(), maskedProperty.replacement());
-                    gen.writeStringField(writer.getName(), maskedValue);
+                    generator.writeStringField(writer.getName(), maskedValue);
                     return;
                 } else {
-                    gen.writeNullField(writer.getName());
+                    generator.writeNullField(writer.getName());
                     return;
                 }
             }
         }
 
-        super.serializeAsField(pojo, gen, provider, writer);
+        super.serializeAsField(pojo, generator, provider, writer);
     }
 }

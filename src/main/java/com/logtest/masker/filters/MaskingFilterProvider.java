@@ -1,6 +1,6 @@
-package com.logtest.masker;
+package com.logtest.masker.filters;
 
-import com.fasterxml.jackson.databind.ser.BeanPropertyFilter;
+import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -12,10 +12,10 @@ public class MaskingFilterProvider extends SimpleFilterProvider {
     private final MaskingPropertyFilter maskingPropertyFilter;
 
     @Override
-    public BeanPropertyFilter findFilter(Object filterId) {
+    public PropertyFilter findPropertyFilter(Object filterId, Object valueToFilter) {
         if ("maskingFilter".equals(filterId)) {
             return maskingPropertyFilter;
         }
-        return super.findFilter(filterId);
+        return super.findPropertyFilter(filterId, valueToFilter);
     }
 }
