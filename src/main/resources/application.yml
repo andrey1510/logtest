@@ -1,3 +1,5 @@
 spring:
   application:
     name: logtest
+server:
+  port: 8888
