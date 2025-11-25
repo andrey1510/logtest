@@ -19,17 +19,16 @@ public class Masker {
 
     @SuppressWarnings("unchecked")
     private static <T> T mask(T dto, Map<Object, Object> processed) {
+
         if (dto == null) return null;
 
-        if (processed.containsKey(dto)) {
+        if (processed.containsKey(dto))
             return (T) processed.get(dto);
-        }
 
         Class<?> dtoClass = dto.getClass();
 
-        if (!dtoClass.isAnnotationPresent(Masked.class)) {
+        if (!dtoClass.isAnnotationPresent(Masked.class))
             return dto;
-        }
 
         try {
             T maskedDto = (T) dtoClass.getDeclaredConstructor().newInstance();
@@ -60,14 +59,11 @@ public class Masker {
         if (value == null)
             return null;
 
-        MaskedProperty annotation = field.getAnnotation(MaskedProperty.class);
+        if (field.getAnnotation(MaskedProperty.class) != null && value instanceof String)
+            return applyMasking((String) value, field.getAnnotation(MaskedProperty.class));
 
-        if (annotation != null && value instanceof String)
-            return applyMasking((String) value, annotation);
-
-        if (value instanceof Collection) {
+        if (value instanceof Collection)
             return processCollection((Collection<?>) value, field, processed);
-        }
 
         if (value instanceof Map)
             return processMap((Map<?, ?>) value, field, processed);
@@ -152,8 +148,7 @@ public class Masker {
             Object processedKey = key;
             Object processedValue = value;
 
-            if (key != null && isCustomObject(key))
-                processedKey = mask(key, processed);
+            if (key != null && isCustomObject(key)) processedKey = mask(key, processed);
 
             if (value != null) {
                 Class<?> valueType = getMapValueType(field);
