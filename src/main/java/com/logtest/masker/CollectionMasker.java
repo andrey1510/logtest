@@ -11,197 +11,148 @@ import java.lang.reflect.Type;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
-import java.util.PriorityQueue;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.SortedMap;
-import java.util.SortedSet;
 import java.util.TreeMap;
-import java.util.TreeSet;
 import java.util.function.BiFunction;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class CollectionMasker {
+    private static final Set<Class<?>> IMMUTABLE_TYPES = Set.of(
+        String.class, Number.class, Boolean.class, Character.class, LocalDate.class
+    );
 
     @Setter
     private static BiFunction<Object, Map<Object, Object>, Object> maskFunction;
 
-    public static Collection<?> processCollection(Collection<?> collection, Field field, Map<Object, Object> processed) {
+    public static Collection<?> processListOrSet(Collection<?> collection, Field field, Map<Object, Object> processed) {
+        if (collection.isEmpty()) return createCollectionInstance(collection);
 
-        if (collection.isEmpty())
-            return createEmptyCollection(collection);
-
-        Collection<Object> resultCollection = (Collection<Object>) createEmptyCollection(collection);
-
-        for (Object item : collection) {
-            if (item == null) {
-                resultCollection.add(null);
-                continue;
-            }
-
-            Object processedItem;
-
-            Class<?> itemType = getCollectionItemType(field);
-            if (itemType != null && itemType.isAnnotationPresent(Masked.class)) {
-                processedItem = maskFunction.apply(item, processed);
-            } else if (isCustomObject(item)) {
-                processedItem = maskFunction.apply(item, processed);
-            } else {
-                processedItem = item;
-            }
-
-            resultCollection.add(processedItem);
-        }
-
-        return resultCollection;
+        return collection.stream()
+            .map(item -> processListOrSetItem(item, field, processed))
+            .collect(Collectors.toCollection(() -> createCollectionInstance(collection)));
     }
 
     public static Map<?, ?> processMap(Map<?, ?> map, Field field, Map<Object, Object> processed) {
+        if (map.isEmpty()) return createMapInstance(map);
 
-        if (map.isEmpty())
-            return createEmptyMap(map);
+        Map<Object, Object> resultMap = createMapInstance(map);
 
-        Map<Object, Object> resultMap = (Map<Object, Object>) createEmptyMap(map);
-
-        for (Map.Entry<?, ?> entry : map.entrySet()) {
-            Object key = entry.getKey();
-            Object value = entry.getValue();
-
-            Object processedKey = key;
-            Object processedValue = value;
-
-            if (key != null && isCustomObject(key))
-                processedKey = maskFunction.apply(key, processed);
-
-            if (value != null) {
-                Class<?> valueType = getMapValueType(field);
-                if (valueType != null && valueType.isAnnotationPresent(Masked.class)) {
-                    processedValue = maskFunction.apply(value, processed);
-                } else if (isCustomObject(value)) {
-                    processedValue = maskFunction.apply(value, processed);
-                }
-                else if (value instanceof String) {
-                    MaskedProperty annotation = field.getAnnotation(MaskedProperty.class);
-                    if (annotation != null) {
-                        processedValue = ((String) value).replaceAll(annotation.pattern(), annotation.replacement());
-                    }
-                }
-            }
-
+        map.forEach((key, value) -> {
+            Object processedKey = processMapKey(key, processed);
+            Object processedValue = processMapValue(value, field, processed);
             resultMap.put(processedKey, processedValue);
-        }
+        });
 
         return resultMap;
     }
 
     public static Object processArray(Object array, Map<Object, Object> processed) {
-
         int length = java.lang.reflect.Array.getLength(array);
         Object newArray = java.lang.reflect.Array.newInstance(array.getClass().getComponentType(), length);
 
         for (int i = 0; i < length; i++) {
             Object item = java.lang.reflect.Array.get(array, i);
-            if (item != null) {
-                Class<?> itemType = array.getClass().getComponentType();
-                if (itemType.isAnnotationPresent(Masked.class)) {
-                    java.lang.reflect.Array.set(newArray, i, maskFunction.apply(item, processed));
-                } else {
-                    java.lang.reflect.Array.set(newArray, i, item);
-                }
-            }
+            Object processedItem = item != null && array.getClass().getComponentType().isAnnotationPresent(Masked.class)
+                ? maskFunction.apply(item, processed)
+                : item;
+            java.lang.reflect.Array.set(newArray, i, processedItem);
         }
         return newArray;
     }
 
-    private static Collection<?> createEmptyCollection(Collection<?> original) {
+    private static Object processListOrSetItem(Object item, Field field, Map<Object, Object> processed) {
+        if (item == null) return null;
 
+        Class<?> itemType = getGenericType(field, 0);
+        boolean shouldMask = (itemType != null && itemType.isAnnotationPresent(Masked.class)) ||
+            isCustomObject(item);
+
+        return shouldMask ? maskFunction.apply(item, processed) : item;
+    }
+
+    private static Object processMapKey(Object key, Map<Object, Object> processed) {
+        return (key != null && isCustomObject(key)) ? maskFunction.apply(key, processed) : key;
+    }
+
+    private static Object processMapValue(Object value, Field field, Map<Object, Object> processed) {
+        if (value == null) return null;
+
+        if (value instanceof String) {
+            return Optional.ofNullable(field.getAnnotation(MaskedProperty.class))
+                .map(annotation -> ((String) value).replaceAll(annotation.pattern(), annotation.replacement()))
+                .orElse((String) value);
+        } else {
+            Class<?> valueType = getGenericType(field, 1);
+            if ((valueType != null && valueType.isAnnotationPresent(Masked.class)) || isCustomObject(value)) {
+                return maskFunction.apply(value, processed);
+            } else {
+                return value;
+            }
+        }
+    }
+
+    private static Collection<Object> createCollectionInstance(Collection<?> original) {
         try {
-            return original.getClass().getDeclaredConstructor().newInstance();
+            return (Collection<Object>) original.getClass().getDeclaredConstructor().newInstance();
         } catch (Exception e) {
-            log.info("Cannot create instance of collection class {}. Using default implementation.",
+            log.debug("Cannot create instance of collection class {}. Using default implementation.",
                 original.getClass().getSimpleName());
-
-            if (original instanceof Set) {
-                if (original instanceof SortedSet) {
-                    return new TreeSet<>(((SortedSet<?>) original).comparator());
-                } else if (original instanceof LinkedHashSet) {
-                    return new LinkedHashSet<>();
-                } else {
-                    return new HashSet<>();
-                }
-            } else if (original instanceof List) {
-                if (original instanceof LinkedList) {
-                    return new LinkedList<>();
-                } else {
-                    return new ArrayList<>();
-                }
-            } else if (original instanceof Queue) {
-                if (original instanceof PriorityQueue) {
-                    return new PriorityQueue<>(((PriorityQueue<?>) original).comparator());
-                } else if (original instanceof Deque) {
-                    return new LinkedList<>();
-                } else {
-                    return new LinkedList<>();
-                }
-            } else {
-                return new ArrayList<>();
-            }
+            return createDefaultCollection(original);
         }
     }
 
-    private static Map<?, ?> createEmptyMap(Map<?, ?> original) {
-
+    private static Map<Object, Object> createMapInstance(Map<?, ?> original) {
         try {
-            return original.getClass().getDeclaredConstructor().newInstance();
+            return (Map<Object, Object>) original.getClass().getDeclaredConstructor().newInstance();
         } catch (Exception e) {
-            if (original instanceof SortedMap) {
-                return new TreeMap<>();
-            } else {
-                return new HashMap<>();
-            }
+            log.debug("Cannot create instance of map class {}. Using default implementation.",
+                original.getClass().getSimpleName());
+            return createDefaultMap(original);
         }
     }
 
-    private static Class<?> getCollectionItemType(Field field) {
-
-        if (field.getGenericType() instanceof ParameterizedType) {
-            Type[] typeArguments = ((ParameterizedType) field.getGenericType()).getActualTypeArguments();
-            if (typeArguments.length > 0 && typeArguments[0] instanceof Class) {
-                return (Class<?>) typeArguments[0];
-            }
+    private static Collection<Object> createDefaultCollection(Collection<?> original) {
+        if (original instanceof LinkedHashSet) {
+            return new LinkedHashSet<>();
+        } else if (original instanceof Set) {
+            return new HashSet<>();
+        } else if (original instanceof LinkedList) {
+            return new LinkedList<>();
+        } else if (original instanceof Queue) {
+            return new LinkedList<>();
+        } else {
+            return new ArrayList<>();
         }
-        return null;
     }
 
-    private static Class<?> getMapValueType(Field field) {
+    private static Map<Object, Object> createDefaultMap(Map<?, ?> original) {
+        return (original instanceof SortedMap) ? new TreeMap<>() : new HashMap<>();
+    }
 
-        if (field.getGenericType() instanceof ParameterizedType) {
-            Type[] typeArguments = ((ParameterizedType) field.getGenericType()).getActualTypeArguments();
-            if (typeArguments.length > 1 && typeArguments[1] instanceof Class) {
-                return (Class<?>) typeArguments[1];
+    private static Class<?> getGenericType(Field field, int index) {
+        if (field.getGenericType() instanceof ParameterizedType paramType) {
+            Type[] typeArguments = paramType.getActualTypeArguments();
+            if (typeArguments.length > index && typeArguments[index] instanceof Class) {
+                return (Class<?>) typeArguments[index];
             }
         }
         return null;
     }
 
     private static boolean isCustomObject(Object obj) {
-
         return !obj.getClass().isPrimitive() &&
             !obj.getClass().isEnum() &&
-            !(obj instanceof String) &&
-            !(obj instanceof Number) &&
-            !(obj instanceof Boolean) &&
-            !(obj instanceof Character) &&
-            !(obj instanceof LocalDate) &&
+            IMMUTABLE_TYPES.stream().noneMatch(type -> type.isInstance(obj)) &&
             !obj.getClass().getName().startsWith("java.") &&
             !obj.getClass().getName().startsWith("javax.");
     }
-
 }

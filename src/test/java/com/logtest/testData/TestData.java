@@ -1,4 +1,4 @@
-package com.logtest;
+package com.logtest.testData;
 
 import com.logtest.dto.AllPatternDto;
 import com.logtest.dto.nestedDto.Account;
@@ -8,7 +8,6 @@ import com.logtest.dto.nestedDto.Passport;
 import com.logtest.dto.nestedDto.Person;
 
 import java.time.LocalDate;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;

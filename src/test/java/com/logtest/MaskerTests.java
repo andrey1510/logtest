@@ -1,30 +1,21 @@
 package com.logtest;
 
-import com.logtest.dto.AllPatternDto;
-import com.logtest.dto.nestedDto.Person;
 import com.logtest.masker.Masker;
-import lombok.extern.slf4j.Slf4j;
+import com.logtest.testData.TestData;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@Slf4j
 public class MaskerTests extends TestData {
 
     @Test
     void testAllFields() {
-        AllPatternDto allPatternDto = createAllPatternDto();
-        AllPatternDto allPatternDtoMasked = createAllPatternDtoMasked();
-
-        assertEquals(allPatternDtoMasked, Masker.mask(allPatternDto));
+        assertEquals(createAllPatternDtoMasked(), Masker.mask(createAllPatternDto()));
     }
 
     @Test
     void testNestedFields() {
-        Person person = createPerson();
-        Person personMasked = createPersonMasked();
-
-        assertEquals(personMasked, Masker.mask(person));
+        assertEquals(createPersonMasked(), Masker.mask(createPerson()));
     }
 
 }

@@ -1,25 +1,26 @@
-package com.logtest.dto.nestedDto;
+package com.logtest.dto.dtoForCollection;
 
 import com.logtest.masker.MaskType;
 import com.logtest.masker.annotations.Masked;
 import com.logtest.masker.annotations.MaskedProperty;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
 
 @Masked
+@Builder
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class FirstLevelDto {
+public class DtoWithList {
 
-    @MaskedProperty(type = MaskType.NAME)
-    private String name;
+    boolean isMasked;
 
-    SecondLevelDto secondLevelDto;
+    @MaskedProperty(type = MaskType.TEXT_FIELD)
+    private String textField;
 
-    List<SecondLevelDto> secondLevelDtos;
-
+    List<CollectionElement> dtos;
 }
