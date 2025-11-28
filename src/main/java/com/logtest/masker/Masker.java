@@ -4,7 +4,6 @@ import com.logtest.masker.annotations.Masked;
 import com.logtest.masker.annotations.MaskedProperty;
 import com.logtest.masker.maskers.CollectionMasker;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Field;
 import java.time.LocalDate;
@@ -73,11 +72,10 @@ public class Masker {
             currentClass = currentClass.getSuperclass();
         }
 
-        processRegularFields(source, target, fields, processed);
-        processDateFields(source, target, fields);
+        processAllFields(source, target, fields, processed);
     }
 
-    private static void processRegularFields(
+    private static void processAllFields(
         Object source, Object target, List<Field> fields, Map<Object, Object> processed
     ) {
         fields.forEach(field -> {
@@ -90,36 +88,12 @@ public class Masker {
         });
     }
 
-    private static void processDateFields(Object source, Object target, List<Field> fields) {
-        fields.stream()
-            .filter(field -> {
-                MaskedProperty annotation = field.getAnnotation(MaskedProperty.class);
-                return annotation != null && (annotation.type() == MaskPatternType.LOCALDATE_FIELD_TO_STRING_FIELD ||
-                    annotation.type() == MaskPatternType.LOCALDATE_TO_ZERO_DATE) && field.getType() == LocalDate.class;
-            })
-            .forEach(field -> {
-                MaskedProperty annotation = field.getAnnotation(MaskedProperty.class);
-                if (annotation.type() == MaskPatternType.LOCALDATE_FIELD_TO_STRING_FIELD) {
-                    maskLocaldateFieldToDateStringField(source, target, field);
-                } else if (annotation.type() == MaskPatternType.LOCALDATE_TO_ZERO_DATE) {
-                    maskLocaldateField(source, target, field);
-                }
-            });
-    }
-
-    private static void maskLocaldateField(Object source, Object target, Field dateField) {
-        dateField.setAccessible(true);
-        try {
-            dateField.set(target, MaskUtils.changeLocalDate((LocalDate) dateField.get(source)));
-        } catch (IllegalAccessException e) {
-            log.warn("Failed to process date replacement field {}: {}", dateField.getName(), e.getMessage());
-        }
-    }
-
     private static Object processFieldValue(Field field, Object value, Map<Object, Object> processed) {
 
         if (value == null) {
             return null;
+        } else if (value instanceof LocalDate && isLocalDateMaskedProperty(field)) {
+            return MaskUtils.changeLocalDate((LocalDate) value);
         } else if (value instanceof String) {
             return processStringValue(field, (String) value);
         } else if (value instanceof List) {
@@ -135,6 +109,11 @@ public class Masker {
         } else {
             return value;
         }
+    }
+
+    private static boolean isLocalDateMaskedProperty(Field field) {
+        MaskedProperty annotation = field.getAnnotation(MaskedProperty.class);
+        return annotation != null && annotation.type() == MaskPatternType.LOCALDATE;
     }
 
     private static String processStringValue(Field field, String value) {
@@ -159,29 +138,6 @@ public class Masker {
                 default -> value;
             })
             .orElse(value);
-    }
-
-    private static void maskLocaldateFieldToDateStringField(Object source, Object target, Field dateField) {
-        dateField.setAccessible(true);
-        try {
-            dateField.set(target, null);
-            findAndSetMaskedDateStringField(target, dateField.getName(), (LocalDate) dateField.get(source));
-        } catch (IllegalAccessException e) {
-            log.warn("Failed to process date field {}: {}", dateField.getName(), e.getMessage());
-        }
-    }
-
-    private static void findAndSetMaskedDateStringField(Object target, String fieldName, LocalDate originalDate) {
-        Optional.ofNullable(ReflectionUtils.findField(target.getClass(), fieldName + DATE_FIELD_POSTFIX))
-            .ifPresent(maskedField -> {
-                if (maskedField.getType() != String.class) return;
-                maskedField.setAccessible(true);
-                try {
-                    maskedField.set(target, originalDate != null ? MaskUtils.maskedLocalDate(originalDate) : null);
-                } catch (IllegalAccessException e) {
-                    log.warn("Failed to set masked date field: {}", e.getMessage());
-                }
-            });
     }
 
     private static void setMaskedFlag(Object dto) {

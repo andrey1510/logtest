@@ -25,7 +25,7 @@ public class IdDocument {
     @MaskedProperty(type = MaskPatternType.OTHER_DUL_NUMBER)
     private String otherDulNumber;
 
-    @MaskedProperty(type = MaskPatternType.LOCALDATE_TO_ZERO_DATE)
+    @MaskedProperty(type = MaskPatternType.LOCALDATE)
     private LocalDate someDate;
 
 }

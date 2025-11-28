@@ -143,7 +143,6 @@ public abstract class TestData {
             .issuerCode("770-220")
             .issuerName("Заречным РУВД г. Москвы")
             .issuanceDate(LocalDate.of(2002, 10, 10))
-            .issuanceDateMasked(null)
             .build();
     }
 
@@ -155,8 +154,7 @@ public abstract class TestData {
             .passportNumber("***919")
             .issuerCode("770-***")
             .issuerName("Заре ***** . Москвы")
-            .issuanceDate(null)
-            .issuanceDateMasked("10.10.****")
+            .issuanceDate(LocalDate.of(0, 1, 1))
             .build();
     }
 
@@ -194,8 +192,6 @@ public abstract class TestData {
             .email("testmail@mail.com")
             .fullname("Иванов Иван Иванович")
             .pan("2000007890123222")
-            .issuanceDate(LocalDate.of(1998, 11, 12))
-            .issuanceDateMasked(null)
             .issuerCode("770-220")
             .issuerName("Заречным РУВД г. Москвы")
             .otherDulNumber("S0001")
@@ -207,6 +203,7 @@ public abstract class TestData {
             .pin("222222")
             .textField("some random text")
             .someDate(LocalDate.of(2001, 4, 3))
+            .anotherDate(LocalDate.of(1988, 2, 1))
             .notForMaskingField("not to be masked")
             .build();
     }
@@ -219,8 +216,6 @@ public abstract class TestData {
             .email("t*******@m***.com")
             .fullname("И***** Иван Иванович")
             .pan("200000******3222")
-            .issuanceDate(null)
-            .issuanceDateMasked("12.11.****")
             .issuerCode("770-***")
             .issuerName("Заре ***** . Москвы")
             .otherDulNumber("****1")
@@ -232,6 +227,7 @@ public abstract class TestData {
             .pin("******")
             .textField("som*****ext")
             .someDate(LocalDate.of(0, 1, 1))
+            .anotherDate(LocalDate.of(0, 1, 1))
             .notForMaskingField("not to be masked")
             .build();
 

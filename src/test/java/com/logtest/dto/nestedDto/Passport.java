@@ -34,8 +34,7 @@ public class Passport {
     @MaskedProperty(type = MaskPatternType.ISSUER_NAME)
     private String issuerName;
 
-    @MaskedProperty(type = MaskPatternType.LOCALDATE_FIELD_TO_STRING_FIELD)
+    @MaskedProperty(type = MaskPatternType.LOCALDATE)
     private LocalDate issuanceDate;
 
-    private String issuanceDateMasked;
 }
