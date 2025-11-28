@@ -1,6 +1,6 @@
 package com.logtest.dto.dtoForCollection;
 
-import com.logtest.masker.MaskType;
+import com.logtest.masker.MaskPatternType;
 import com.logtest.masker.annotations.Masked;
 import com.logtest.masker.annotations.MaskedProperty;
 import lombok.AllArgsConstructor;
@@ -19,7 +19,7 @@ public class DtoWithList {
 
     boolean isMasked;
 
-    @MaskedProperty(type = MaskType.TEXT_FIELD)
+    @MaskedProperty(type = MaskPatternType.TEXT_FIELD)
     private String textField;
 
     List<CollectionElement> dtos;

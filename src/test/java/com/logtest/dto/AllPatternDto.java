@@ -1,6 +1,6 @@
 package com.logtest.dto;
 
-import com.logtest.masker.MaskType;
+import com.logtest.masker.MaskPatternType;
 import com.logtest.masker.annotations.Masked;
 import com.logtest.masker.annotations.MaskedProperty;
 import lombok.AllArgsConstructor;
@@ -19,55 +19,55 @@ public class AllPatternDto {
 
     private boolean isMasked;
 
-    @MaskedProperty(type = MaskType.NAME)
+    @MaskedProperty(type = MaskPatternType.NAME)
     private String fullname;
 
-    @MaskedProperty(type = MaskType.EMAIL)
+    @MaskedProperty(type = MaskPatternType.EMAIL)
     private String email;
 
-    @MaskedProperty(type = MaskType.PHONE)
+    @MaskedProperty(type = MaskPatternType.PHONE)
     private String phoneNumber;
 
-    @MaskedProperty(type = MaskType.TEXT_FIELD)
+    @MaskedProperty(type = MaskPatternType.TEXT_FIELD)
     private String textField;
 
-    @MaskedProperty(type = MaskType.PAN)
+    @MaskedProperty(type = MaskPatternType.PAN)
     private String pan;
 
-    @MaskedProperty(type = MaskType.BALANCE)
+    @MaskedProperty(type = MaskPatternType.BALANCE)
     private String balance;
 
-    @MaskedProperty(type = MaskType.CONFIDENTIAL_NUMBER)
+    @MaskedProperty(type = MaskPatternType.CONFIDENTIAL_NUMBER)
     private String confidentialNumber;
 
-    @MaskedProperty(type = MaskType.PIN)
+    @MaskedProperty(type = MaskPatternType.PIN)
     private String pin;
 
-    @MaskedProperty(type = MaskType.OTHER_DUL_SERIES)
+    @MaskedProperty(type = MaskPatternType.OTHER_DUL_SERIES)
     private String otherDulSeries;
 
-    @MaskedProperty(type = MaskType.OTHER_DUL_NUMBER)
+    @MaskedProperty(type = MaskPatternType.OTHER_DUL_NUMBER)
     private String otherDulNumber;
 
-    @MaskedProperty(type = MaskType.PASSPORT)
+    @MaskedProperty(type = MaskPatternType.PASSPORT)
     private String passport;
 
-    @MaskedProperty(type = MaskType.PASSPORT_SERIES)
+    @MaskedProperty(type = MaskPatternType.PASSPORT_SERIES)
     private String passportSeries;
 
-    @MaskedProperty(type = MaskType.PASSPORT_NUMBER)
+    @MaskedProperty(type = MaskPatternType.PASSPORT_NUMBER)
     private String passportNumber;
 
-    @MaskedProperty(type = MaskType.ISSUER_CODE)
+    @MaskedProperty(type = MaskPatternType.ISSUER_CODE)
     private String issuerCode;
 
-    @MaskedProperty(type = MaskType.ISSUER_NAME)
+    @MaskedProperty(type = MaskPatternType.ISSUER_NAME)
     private String issuerName;
 
-    @MaskedProperty(type = MaskType.LOCALDATE_FIELD_TO_STRING_FIELD)
+    @MaskedProperty(type = MaskPatternType.LOCALDATE_FIELD_TO_STRING_FIELD)
     private LocalDate issuanceDate;
 
-    @MaskedProperty(type = MaskType.LOCALDATE_TO_ZERO_DATE)
+    @MaskedProperty(type = MaskPatternType.LOCALDATE_TO_ZERO_DATE)
     private LocalDate someDate;
 
     private String issuanceDateMasked;

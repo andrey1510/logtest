@@ -6,7 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -89,13 +88,11 @@ public class CollectionMasker {
     }
 
     private static Class<?> findElementType(Field field, int index) {
-        if (field.getGenericType() instanceof ParameterizedType paramType) {
-            Type[] typeArguments = paramType.getActualTypeArguments();
-            if (typeArguments.length > index && typeArguments[index] instanceof Class) {
-                return (Class<?>) typeArguments[index];
-            }
-        }
-        return null;
+        return field.getGenericType() instanceof ParameterizedType paramType
+                && paramType.getActualTypeArguments().length > index
+                && paramType.getActualTypeArguments()[index] instanceof Class<?> clazz
+            ? clazz
+            : null;
     }
 
 }

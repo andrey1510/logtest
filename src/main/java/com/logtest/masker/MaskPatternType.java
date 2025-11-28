@@ -1,6 +1,6 @@
 package com.logtest.masker;
 
-public enum MaskType {
+public enum MaskPatternType {
     CUSTOM, // для указания паттерна вручную в Dto
     TEXT_FIELD,
     NAME,
