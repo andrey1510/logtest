@@ -20,6 +20,7 @@ import java.util.Set;
 public class Masker {
     private static final String DATE_FIELD_POSTFIX = "Masked";
     private static final String ISMASKED_FIELD_NAME = "isMasked";
+    private static final String DATE_REPLACEMENT = "0000-01-01";
     private static final Set<Class<?>> IMMUTABLE_TYPES = Set.of(
         String.class, Number.class, Boolean.class, Character.class, LocalDate.class
     );
@@ -92,12 +93,31 @@ public class Masker {
     private static void processDateFields(Object source, Object target, List<Field> fields) {
         fields.stream()
             .filter(Masker::isDateField)
-            .forEach(field -> processDateField(source, target, field));
+            .forEach(field -> {
+                MaskedProperty annotation = field.getAnnotation(MaskedProperty.class);
+                if (annotation.type() == MaskType.DATE_COPY) {
+                    processDateField(source, target, field);
+                } else if (annotation.type() == MaskType.DATE_REPLACE) {
+                    processDateReplaceField(source, target, field);
+                }
+            });
     }
 
     private static boolean isDateField(Field field) {
         MaskedProperty annotation = field.getAnnotation(MaskedProperty.class);
-        return annotation != null && annotation.type() == MaskType.DATE && field.getType() == LocalDate.class;
+        return annotation != null &&
+            (annotation.type() == MaskType.DATE_COPY || annotation.type() == MaskType.DATE_REPLACE)
+            && field.getType() == LocalDate.class;
+    }
+
+    private static void processDateReplaceField(Object source, Object target, Field dateField) {
+        dateField.setAccessible(true);
+        try {
+            LocalDate nullDate = LocalDate.of(0, 1, 1);
+            dateField.set(target, nullDate);
+        } catch (IllegalAccessException e) {
+            log.warn("Failed to process date replacement field {}: {}", dateField.getName(), e.getMessage());
+        }
     }
 
     private static Object processFieldValue(Field field, Object value, Map<Object, Object> processed) {
@@ -120,12 +140,16 @@ public class Masker {
 
     private static String processStringValue(Field field, String value) {
         return Optional.ofNullable(field.getAnnotation(MaskedProperty.class))
-            .map(annotation -> applyMasking(value, annotation))
+            .map(annotation -> {
+                if (annotation.type() == MaskType.DATE_REPLACE) {
+                    return DATE_REPLACEMENT;
+                }
+                return applyMasking(value, annotation);
+            })
             .orElse(value);
     }
 
     private static String applyMasking(String value, MaskedProperty annotation) {
-
         if (annotation.type() == MaskType.CUSTOM)
             return value.replaceAll(annotation.pattern(), annotation.replacement());
 
@@ -145,7 +169,8 @@ public class Masker {
             case ISSUER_NAME -> MaskUtils.maskedIssuerName(value);
             case OTHER_DUL_SERIES -> MaskUtils.maskedOtherDulSeries(value);
             case OTHER_DUL_NUMBER -> MaskUtils.maskedOtherDulNumber(value);
-            case DATE -> value;
+            case DATE_COPY -> value;
+            case DATE_REPLACE -> DATE_REPLACEMENT;
             default -> value;
         };
     }

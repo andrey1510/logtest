@@ -17,5 +17,6 @@ public enum MaskType {
     ISSUER_NAME,
     OTHER_DUL_SERIES,
     OTHER_DUL_NUMBER,
-    DATE
+    DATE_COPY,
+    DATE_REPLACE
 }

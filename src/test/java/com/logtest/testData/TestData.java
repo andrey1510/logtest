@@ -103,6 +103,7 @@ public abstract class TestData {
             .isMasked(false)
             .otherDulSeries("212")
             .otherDulNumber("T-8008")
+            .someDate(LocalDate.of(2021, 1, 2))
             .build();
     }
 
@@ -111,6 +112,7 @@ public abstract class TestData {
             .isMasked(true)
             .otherDulSeries("2***")
             .otherDulNumber("****8")
+            .someDate(LocalDate.of(0, 1, 1))
             .build();
     }
 
@@ -119,6 +121,7 @@ public abstract class TestData {
             .isMasked(false)
             .otherDulSeries("3434")
             .otherDulNumber("S0001")
+            .someDate(LocalDate.of(2001, 4, 3))
             .build();
     }
 
@@ -127,6 +130,7 @@ public abstract class TestData {
             .isMasked(true)
             .otherDulSeries("3***")
             .otherDulNumber("****1")
+            .someDate(LocalDate.of(0, 1, 1))
             .build();
     }
 
@@ -202,6 +206,7 @@ public abstract class TestData {
             .phoneNumber("79058453312")
             .pin("222222")
             .textField("some random text")
+            .someDate(LocalDate.of(2001, 4, 3))
             .notForMaskingField("not to be masked")
             .build();
     }
@@ -226,6 +231,7 @@ public abstract class TestData {
             .phoneNumber("79*******12")
             .pin("******")
             .textField("som*****ext")
+            .someDate(LocalDate.of(0, 1, 1))
             .notForMaskingField("not to be masked")
             .build();
 

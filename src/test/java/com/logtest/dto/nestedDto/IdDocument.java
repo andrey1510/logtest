@@ -8,6 +8,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+
 @Masked
 @Builder
 @Data
@@ -22,5 +24,8 @@ public class IdDocument {
 
     @MaskedProperty(type = MaskType.OTHER_DUL_NUMBER)
     private String otherDulNumber;
+
+    @MaskedProperty(type = MaskType.DATE_REPLACE)
+    private LocalDate someDate;
 
 }

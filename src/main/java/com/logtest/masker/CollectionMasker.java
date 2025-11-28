@@ -26,6 +26,9 @@ import java.util.stream.Collectors;
 
 @Slf4j
 public class CollectionMasker {
+
+    private static final String DATE_REPLACEMENT = "0000-01-01";
+
     private static final Set<Class<?>> IMMUTABLE_TYPES = Set.of(
         String.class, Number.class, Boolean.class, Character.class, LocalDate.class
     );
@@ -88,7 +91,12 @@ public class CollectionMasker {
 
         if (value instanceof String) {
             return Optional.ofNullable(field.getAnnotation(MaskedProperty.class))
-                .map(annotation -> ((String) value).replaceAll(annotation.pattern(), annotation.replacement()))
+                .map(annotation -> {
+                    if (annotation.type() == MaskType.DATE_REPLACE) {
+                        return DATE_REPLACEMENT;
+                    }
+                    return ((String) value).replaceAll(annotation.pattern(), annotation.replacement());
+                })
                 .orElse((String) value);
         } else {
             Class<?> valueType = getGenericType(field, 1);
