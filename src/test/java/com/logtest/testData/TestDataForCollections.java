@@ -4,9 +4,11 @@ import com.logtest.dto.dtoForCollection.CollectionElement;
 import com.logtest.dto.dtoForCollection.DtoWithArray;
 import com.logtest.dto.dtoForCollection.DtoWithList;
 import com.logtest.dto.dtoForCollection.DtoWithMap;
+import com.logtest.dto.dtoForCollection.DtoWithQueue;
 import com.logtest.dto.dtoForCollection.DtoWithSet;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -14,6 +16,8 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.PriorityQueue;
+import java.util.Queue;
 import java.util.Set;
 import java.util.TreeMap;
 
@@ -263,5 +267,25 @@ public abstract class TestDataForCollections {
             .build();
     }
 
+    protected DtoWithQueue createQueue() {
+        PriorityQueue<CollectionElement> queue = new PriorityQueue<>(Comparator.comparing(CollectionElement::getPhoneNumber));
+        queue.add(createCollectionElement1());
 
+        return DtoWithQueue.builder()
+            .isMasked(false)
+            .textField("some random text")
+            .dtos(queue)
+            .build();
+    }
+
+    protected DtoWithQueue createQueueMasked() {
+        PriorityQueue<CollectionElement> queue = new PriorityQueue<>(Comparator.comparing(CollectionElement::getPhoneNumber));
+        queue.add(createCollectionElement1());
+
+        return DtoWithQueue.builder()
+            .isMasked(true)
+            .textField("som*****ext")
+            .dtos(queue)
+            .build();
+    }
 }

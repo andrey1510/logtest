@@ -17,10 +17,10 @@ import java.util.List;
 @NoArgsConstructor
 public class DtoWithList {
 
-    boolean isMasked;
+    private boolean isMasked;
 
     @MaskedProperty(type = MaskPatternType.TEXT_FIELD)
     private String textField;
 
-    List<CollectionElement> dtos;
+    private List<CollectionElement> dtos;
 }

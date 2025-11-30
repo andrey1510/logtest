@@ -34,9 +34,9 @@ public class Person {
 
     private Passport passport;
 
-    List<Account> accounts;
+    private List<Account> accounts;
 
-    Map<String, IdDocument> idDocuments;
+    private Map<String, IdDocument> idDocuments;
 
 }
 

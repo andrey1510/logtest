@@ -30,6 +30,7 @@ public class Masker {
     }
 
     private static <T> T processRecursively(T dto, Map<Object, Object> processed) {
+
         if (dto == null) {
             return null;
         } else if (processed.containsKey(dto)) {
@@ -50,7 +51,7 @@ public class Masker {
         try {
             result = Optional.of(((Class<T>) source.getClass()).getDeclaredConstructor().newInstance());
         } catch (Exception e) {
-            log.error("Failed to create instance: {}", e.getMessage());
+            log.error("Failed to create instance of dto: {}", e.getMessage());
             result = Optional.empty();
         }
         return result
@@ -82,7 +83,7 @@ public class Masker {
             try {
                 field.set(target, processFieldValue(field, field.get(source), processed));
             } catch (IllegalAccessException e) {
-                log.warn("Failed to access field {}: {}", field.getName(), e.getMessage());
+                log.error("Failed to access field {}: {}", field.getName(), e.getMessage());
             }
         });
     }
@@ -146,11 +147,12 @@ public class Masker {
 
             if (maskedField.getType() == boolean.class || maskedField.getType() == Boolean.class) {
                 maskedField.set(dto, true);
+            } else {
+                log.error("Wrong type of isMasked field in class {}", dto.getClass().getSimpleName());
             }
-        } catch (NoSuchFieldException e) {
-            log.debug("isMasked field not found in class {}", dto.getClass().getSimpleName());
+
         } catch (Exception e) {
-            log.error("Error setting isMasked flag: {}", e.getMessage());
+            log.error("Error setting isMasked flag  in class {} : {}", dto.getClass().getSimpleName(), e.getMessage());
         }
     }
 }

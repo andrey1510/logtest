@@ -1,8 +1,6 @@
-package com.logtest.dto.dtoForCollection;
+package com.logtest.dto;
 
-import com.logtest.masker.MaskPatternType;
 import com.logtest.masker.annotations.Masked;
-import com.logtest.masker.annotations.MaskedProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,10 +11,9 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CollectionElement {
+public class NoFieldsForMaskingDto {
 
     private boolean isMasked;
 
-    @MaskedProperty(type = MaskPatternType.PHONE)
-    private String phoneNumber;
+    private String someText;
 }

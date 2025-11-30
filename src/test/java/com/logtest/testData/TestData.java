@@ -1,9 +1,17 @@
 package com.logtest.testData;
 
 import com.logtest.dto.AllPatternDto;
+import com.logtest.dto.DtoForRecursion;
+import com.logtest.dto.DtoWithNoIsMaskedField;
+import com.logtest.dto.DtoWithWrongIsMaskedField;
+import com.logtest.dto.DtoWithWrongPatternAndType;
+import com.logtest.dto.NoFieldsForMaskingDto;
+import com.logtest.dto.NoMaskedAnnotationDto;
+import com.logtest.dto.SimpleDtoForMasking;
 import com.logtest.dto.nestedDto.Account;
 import com.logtest.dto.nestedDto.Credentials;
 import com.logtest.dto.nestedDto.IdDocument;
+import com.logtest.dto.nestedDto.NoMaskedAnnotationDtoWithNested;
 import com.logtest.dto.nestedDto.Passport;
 import com.logtest.dto.nestedDto.Person;
 
@@ -230,8 +238,138 @@ public abstract class TestData {
             .anotherDate(LocalDate.of(0, 1, 1))
             .notForMaskingField("not to be masked")
             .build();
+    }
+
+    protected NoMaskedAnnotationDtoWithNested createNoMaskedAnnotationDtoWithNested() {
+        return NoMaskedAnnotationDtoWithNested.builder()
+            .someText("some text")
+            .credentials(Set.of(createCredentials1()))
+            .idDocument(createIdDocument1())
+            .build();
+    }
+
+    protected NoMaskedAnnotationDtoWithNested createNoMaskedAnnotationDtoWithNestedMasked() {
+        return NoMaskedAnnotationDtoWithNested.builder()
+            .someText("some text")
+            .credentials(Set.of(createCredentials1Masked()))
+            .idDocument(createIdDocument1Masked())
+            .build();
+    }
+
+    protected DtoForRecursion createDeepRecursionDto(int levels) {
+        if (levels <= 0)  return null;
+
+        DtoForRecursion current = null;
+
+        for (int i = levels; i >= 1; i--) {
+            current = DtoForRecursion.builder()
+                .isMasked(false)
+                .pin("1111")
+                .dto(current)
+                .build();
+        }
+        return current;
+    }
+
+    protected NoFieldsForMaskingDto createNoFieldsForMaskingDto() {
+        return NoFieldsForMaskingDto.builder()
+            .isMasked(false)
+            .someText("some text")
+            .build();
+    }
+
+    protected NoFieldsForMaskingDto createNoFieldsForMaskingDtoMasked() {
+        return NoFieldsForMaskingDto.builder()
+            .isMasked(true)
+            .someText("some text")
+            .build();
+    }
+
+    protected NoMaskedAnnotationDto createNoMaskedAnnotationDto() {
+        return NoMaskedAnnotationDto.builder()
+            .isMasked(false)
+            .pin("1111")
+            .build();
+    }
+
+    protected DtoWithWrongIsMaskedField createDtoWithWrongIsMaskedField() {
+        return DtoWithWrongIsMaskedField.builder()
+            .isMasked("false")
+            .pin("1111")
+            .build();
+    }
+
+    protected DtoWithWrongIsMaskedField createDtoWithWrongIsMaskedFieldMasked() {
+        return DtoWithWrongIsMaskedField.builder()
+            .isMasked("false")
+            .pin("****")
+            .build();
+    }
+
+    protected DtoWithNoIsMaskedField createDtoWithNoIsMaskedField() {
+        return DtoWithNoIsMaskedField.builder()
+            .pin("1111")
+            .build();
+    }
+
+    protected DtoWithNoIsMaskedField createDtoWithNoIsMaskedFieldMasked() {
+        return DtoWithNoIsMaskedField.builder()
+            .pin("****")
+            .build();
+    }
+
+    protected SimpleDtoForMasking createSimpleDtoForMaskingIsMaskedTrue() {
+        return SimpleDtoForMasking.builder()
+            .isMasked(true)
+            .phoneNumber("79058453312")
+            .build();
+    }
+
+    protected SimpleDtoForMasking createSimpleDtoForMaskingIsMaskedNull() {
+        return SimpleDtoForMasking.builder()
+            .phoneNumber("79058453312")
+            .build();
+    }
+
+    protected SimpleDtoForMasking createSimpleDtoForMaskingMasked() {
+        return SimpleDtoForMasking.builder()
+            .isMasked(true)
+            .phoneNumber("79*******12")
+            .build();
+    }
 
 
+    protected DtoWithWrongPatternAndType createDtoWithWrongPatternAndType() {
+        return DtoWithWrongPatternAndType.builder()
+            .isMasked(false)
+            .correctPatternAndType("1111")
+            .wrongPattern("some text")
+            .wrongType(1234)
+            .nestedDto(DtoWithWrongPatternAndType.builder()
+                .isMasked(false)
+                .correctPatternAndType("1111")
+                .wrongPattern("some text")
+                .wrongType(1234)
+                .build())
+            .build();
+    }
+
+    protected DtoWithWrongPatternAndType createDtoWithWrongPatternAndTypeMasked() {
+        return DtoWithWrongPatternAndType.builder()
+            .isMasked(true)
+            .correctPatternAndType("****")
+            .wrongPattern("some text")
+            .wrongType(1234)
+            .nestedDto(DtoWithWrongPatternAndType.builder()
+                .isMasked(true)
+                .correctPatternAndType("****")
+                .wrongPattern("some text")
+                .wrongType(1234)
+                .build())
+            .build();
     }
 
 }
+
+
+

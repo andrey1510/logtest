@@ -1,5 +1,6 @@
 package com.logtest;
 
+import com.logtest.dto.dtoForCollection.DtoWithQueue;
 import com.logtest.masker.Masker;
 import com.logtest.testData.TestDataForCollections;
 import org.junit.jupiter.api.Test;
@@ -9,62 +10,71 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class MaskerTestsCollectionsOnly extends TestDataForCollections {
 
     @Test
-    void testArrayList() {
+    void mask_testArrayList() {
         assertEquals(createArrayListMasked(), Masker.mask(createArrayList()));
     }
 
     @Test
-    void testEmptyArrayList() {
+    void mask_testEmptyArrayList() {
         assertEquals(createEmptyArrayListMasked(), Masker.mask(createEmptyArrayList()));
     }
 
     @Test
-    void testLinkedList() {
+    void mask_testLinkedList() {
         assertEquals(createLinkedListMasked(), Masker.mask(createLinkedList()));
     }
 
     @Test
-    void testListImmutable() {
+    void mask_testListImmutable() {
         assertEquals(createListImmutableMasked(), Masker.mask(createListImmutable()));
     }
 
     @Test
-    void testArray() {
+    void mask_testArray() {
         assertEquals(createArrayMasked(), Masker.mask(createArray()));
     }
 
     @Test
-    void testHashSet() {
+    void mask_testHashSet() {
         assertEquals(createHashSetMasked(), Masker.mask(createHashSet()));
     }
 
     @Test
-    void testLinkedHashSet() {
+    void mask_testLinkedHashSet() {
         assertEquals(createLinkedHashSetMasked(), Masker.mask(createLinkedHashSet()));
     }
 
     @Test
-    void testSetImmutable() {
+    void mask_testSetImmutable() {
         assertEquals(createSetImmutableMasked(), Masker.mask(createSetImmutable()));
     }
 
     @Test
-    void testHashMap() {
+    void mask_testHashMap() {
         assertEquals(createHashMapMasked(), Masker.mask(createHashMap()));
     }
 
     @Test
-    void testLinkedHashMap() {
+    void mask_testLinkedHashMap() {
         assertEquals(createLinkedHashMapMasked(), Masker.mask(createLinkedHashMap()));
     }
 
     @Test
-    void testTreeMap() {
+    void mask_testTreeMap() {
         assertEquals(createTreeMapMasked(), Masker.mask(createTreeMap()));
     }
 
     @Test
-    void testMapImmutable() {
+    void mask_testMapImmutable() {
         assertEquals(createMapImmutableMasked(), Masker.mask(createMapImmutable()));
     }
+
+    @Test
+    void mask_testDtoWithUnsuppornedCollection() {
+        DtoWithQueue expected = createQueueMasked();
+        DtoWithQueue result = Masker.mask(createQueue());
+        assertEquals(result.getTextField(), expected.getTextField());
+        assertEquals(result.getDtos().element().getPhoneNumber(), expected.getDtos().element().getPhoneNumber());
+    }
+
 }

@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class DtoWithArray {
 
-    boolean isMasked;
+    private boolean isMasked;
 
     @MaskedProperty(type = MaskPatternType.TEXT_FIELD)
     private String textField;
