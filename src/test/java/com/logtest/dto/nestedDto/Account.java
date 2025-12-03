@@ -1,6 +1,6 @@
 package com.logtest.dto.nestedDto;
 
-import com.logtest.masker.MaskPatternType;
+import com.logtest.masker.utils.MaskPatternType;
 import com.logtest.masker.annotations.Masked;
 import com.logtest.masker.annotations.MaskedProperty;
 import lombok.AllArgsConstructor;
@@ -19,12 +19,7 @@ public class Account {
 
     private boolean isMasked;
 
-    @MaskedProperty(type = MaskPatternType.PAN)
-    private String pan;
-
-    @MaskedProperty(type = MaskPatternType.BALANCE)
-    private String balance;
-
-    private Set<Credentials> credentials;
+    @MaskedProperty(type = MaskPatternType.SURNAME)
+    private String surname;
 
 }

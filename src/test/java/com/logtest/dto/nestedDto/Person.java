@@ -1,6 +1,6 @@
 package com.logtest.dto.nestedDto;
 
-import com.logtest.masker.MaskPatternType;
+import com.logtest.masker.utils.MaskPatternType;
 import com.logtest.masker.annotations.Masked;
 import com.logtest.masker.annotations.MaskedProperty;
 import lombok.AllArgsConstructor;
@@ -20,14 +20,11 @@ public class Person {
 
     private boolean isMasked;
 
-    @MaskedProperty(type = MaskPatternType.NAME)
+    @MaskedProperty(type = MaskPatternType.FULL_NAME)
     private String fullname;
 
     @MaskedProperty(type = MaskPatternType.EMAIL)
     private String email;
-
-    @MaskedProperty(type = MaskPatternType.PHONE)
-    private String phoneNumber;
 
     @MaskedProperty(type = MaskPatternType.TEXT_FIELD)
     private String textField;

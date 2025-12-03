@@ -17,44 +17,51 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
-import java.util.Queue;
 import java.util.Set;
 import java.util.TreeMap;
 
 public abstract class TestDataForCollections {
 
+    private static final String TEXT = "some random text";
+    private static final String TEXT_MASKED = "som**********ext";
+    private static final String PHONE_1 = "79058453312";
+    private static final String PHONE_1_MASKED = "79*******12";
+    private static final String PHONE_2 = "89058453318";
+    private static final String PHONE_2_MASKED = "89*******18";
+
+
     protected CollectionElement createCollectionElement1() {
         return CollectionElement.builder()
             .isMasked(false)
-            .phoneNumber("79058453312")
+            .phoneNumber(PHONE_1)
             .build();
     }
 
     protected CollectionElement createCollectionElement1Masked() {
         return CollectionElement.builder()
             .isMasked(true)
-            .phoneNumber("79*******12")
+            .phoneNumber(PHONE_1_MASKED)
             .build();
     }
 
     protected CollectionElement createCollectionElement2() {
         return CollectionElement.builder()
             .isMasked(false)
-            .phoneNumber("89058453318")
+            .phoneNumber(PHONE_2 )
             .build();
     }
 
     protected CollectionElement createCollectionElement2Masked() {
         return CollectionElement.builder()
             .isMasked(true)
-            .phoneNumber("89*******18")
+            .phoneNumber(PHONE_2_MASKED)
             .build();
     }
 
     protected DtoWithList createArrayList() {
         return DtoWithList.builder()
             .isMasked(false)
-            .textField("some random text")
+            .textField(TEXT)
             .dtos(new ArrayList<>(List.of(createCollectionElement1(), createCollectionElement2())))
             .build();
     }
@@ -62,7 +69,7 @@ public abstract class TestDataForCollections {
     protected DtoWithList createArrayListMasked() {
         return DtoWithList.builder()
             .isMasked(true)
-            .textField("som*****ext")
+            .textField(TEXT_MASKED)
             .dtos(new ArrayList<>(List.of(createCollectionElement1Masked(), createCollectionElement2Masked())))
             .build();
     }
@@ -70,7 +77,7 @@ public abstract class TestDataForCollections {
     protected DtoWithList createLinkedList() {
         return DtoWithList.builder()
             .isMasked(false)
-            .textField("some random text")
+            .textField(TEXT)
             .dtos(new LinkedList<>(List.of(createCollectionElement1(), createCollectionElement2())))
             .build();
     }
@@ -78,7 +85,7 @@ public abstract class TestDataForCollections {
     protected DtoWithList createLinkedListMasked() {
         return DtoWithList.builder()
             .isMasked(true)
-            .textField("som*****ext")
+            .textField(TEXT_MASKED)
             .dtos(new LinkedList<>(List.of(createCollectionElement1Masked(), createCollectionElement2Masked())))
             .build();
     }
@@ -86,7 +93,7 @@ public abstract class TestDataForCollections {
     protected DtoWithList createListImmutable() {
         return DtoWithList.builder()
             .isMasked(false)
-            .textField("some random text")
+            .textField(TEXT)
             .dtos(List.of(createCollectionElement1(), createCollectionElement2()))
             .build();
     }
@@ -94,7 +101,7 @@ public abstract class TestDataForCollections {
     protected DtoWithList createListImmutableMasked() {
         return DtoWithList.builder()
             .isMasked(true)
-            .textField("som*****ext")
+            .textField(TEXT_MASKED)
             .dtos(List.of(createCollectionElement1Masked(), createCollectionElement2Masked()))
             .build();
     }
@@ -102,7 +109,7 @@ public abstract class TestDataForCollections {
     protected DtoWithArray createArray() {
         return DtoWithArray.builder()
             .isMasked(false)
-            .textField("some random text")
+            .textField(TEXT)
             .dtos(new CollectionElement[]{createCollectionElement1(), createCollectionElement2()})
             .build();
     }
@@ -110,7 +117,7 @@ public abstract class TestDataForCollections {
     protected DtoWithArray createArrayMasked() {
         return DtoWithArray.builder()
             .isMasked(true)
-            .textField("som*****ext")
+            .textField(TEXT_MASKED)
             .dtos(new CollectionElement[]{createCollectionElement1Masked(), createCollectionElement2Masked()})
             .build();
     }
@@ -118,7 +125,7 @@ public abstract class TestDataForCollections {
     protected DtoWithSet createHashSet() {
         return DtoWithSet.builder()
             .isMasked(false)
-            .textField("some random text")
+            .textField(TEXT)
             .dtos(new HashSet<>(Set.of(createCollectionElement1(), createCollectionElement2())))
             .build();
     }
@@ -126,7 +133,7 @@ public abstract class TestDataForCollections {
     protected DtoWithSet createHashSetMasked() {
         return DtoWithSet.builder()
             .isMasked(true)
-            .textField("som*****ext")
+            .textField(TEXT_MASKED)
             .dtos(new HashSet<>(Set.of(createCollectionElement1Masked(), createCollectionElement2Masked())))
             .build();
     }
@@ -134,7 +141,7 @@ public abstract class TestDataForCollections {
     protected DtoWithSet createLinkedHashSet() {
         return DtoWithSet.builder()
             .isMasked(false)
-            .textField("some random text")
+            .textField(TEXT)
             .dtos(new LinkedHashSet<>(Set.of(createCollectionElement1(), createCollectionElement2())))
             .build();
     }
@@ -142,7 +149,7 @@ public abstract class TestDataForCollections {
     protected DtoWithSet createLinkedHashSetMasked() {
         return DtoWithSet.builder()
             .isMasked(true)
-            .textField("som*****ext")
+            .textField(TEXT_MASKED)
             .dtos(new LinkedHashSet<>(Set.of(createCollectionElement1Masked(), createCollectionElement2Masked())))
             .build();
     }
@@ -150,7 +157,7 @@ public abstract class TestDataForCollections {
     protected DtoWithSet createSetImmutable() {
         return DtoWithSet.builder()
             .isMasked(false)
-            .textField("some random text")
+            .textField(TEXT)
             .dtos(Set.of(createCollectionElement1(), createCollectionElement2()))
             .build();
     }
@@ -158,7 +165,7 @@ public abstract class TestDataForCollections {
     protected DtoWithSet createSetImmutableMasked() {
         return DtoWithSet.builder()
             .isMasked(true)
-            .textField("som*****ext")
+            .textField(TEXT_MASKED)
             .dtos(Set.of(createCollectionElement1Masked(), createCollectionElement2Masked()))
             .build();
     }
@@ -166,7 +173,7 @@ public abstract class TestDataForCollections {
     protected DtoWithMap createHashMap() {
         return DtoWithMap.builder()
             .isMasked(false)
-            .textField("some random text")
+            .textField(TEXT)
             .dtos(new HashMap<>() {{
                 put("key1", createCollectionElement1());
                 put("key2", createCollectionElement2());
@@ -177,7 +184,7 @@ public abstract class TestDataForCollections {
     protected DtoWithMap createHashMapMasked() {
         return DtoWithMap.builder()
             .isMasked(true)
-            .textField("som*****ext")
+            .textField(TEXT_MASKED)
             .dtos(new HashMap<>() {{
                 put("key1", createCollectionElement1Masked());
                 put("key2", createCollectionElement2Masked());
@@ -188,7 +195,7 @@ public abstract class TestDataForCollections {
     protected DtoWithMap createLinkedHashMap() {
         return DtoWithMap.builder()
             .isMasked(false)
-            .textField("some random text")
+            .textField(TEXT)
             .dtos(new LinkedHashMap<>() {{
                 put("key1", createCollectionElement1());
                 put("key2", createCollectionElement2());
@@ -199,7 +206,7 @@ public abstract class TestDataForCollections {
     protected DtoWithMap createLinkedHashMapMasked() {
         return DtoWithMap.builder()
             .isMasked(true)
-            .textField("som*****ext")
+            .textField(TEXT_MASKED)
             .dtos(new LinkedHashMap<>() {{
                 put("key1", createCollectionElement1Masked());
                 put("key2", createCollectionElement2Masked());
@@ -210,7 +217,7 @@ public abstract class TestDataForCollections {
     protected DtoWithMap createTreeMap() {
         return DtoWithMap.builder()
             .isMasked(false)
-            .textField("some random text")
+            .textField(TEXT)
             .dtos(new TreeMap<>() {{
                 put("key1", createCollectionElement1());
                 put("key2", createCollectionElement2());
@@ -221,7 +228,7 @@ public abstract class TestDataForCollections {
     protected DtoWithMap createTreeMapMasked() {
         return DtoWithMap.builder()
             .isMasked(true)
-            .textField("som*****ext")
+            .textField(TEXT_MASKED)
             .dtos(new TreeMap<>() {{
                 put("key1", createCollectionElement1Masked());
                 put("key2", createCollectionElement2Masked());
@@ -232,7 +239,7 @@ public abstract class TestDataForCollections {
     protected DtoWithMap createMapImmutable() {
         return DtoWithMap.builder()
             .isMasked(false)
-            .textField("some random text")
+            .textField(TEXT)
             .dtos(Map.of(
                 "key1", createCollectionElement1(),
                 "key2", createCollectionElement2()
@@ -243,7 +250,7 @@ public abstract class TestDataForCollections {
     protected DtoWithMap createMapImmutableMasked() {
         return DtoWithMap.builder()
             .isMasked(true)
-            .textField("som*****ext")
+            .textField(TEXT_MASKED)
             .dtos(Map.of(
                 "key1", createCollectionElement1Masked(),
                 "key2", createCollectionElement2Masked()
@@ -254,7 +261,7 @@ public abstract class TestDataForCollections {
     protected DtoWithList createEmptyArrayList() {
         return DtoWithList.builder()
             .isMasked(false)
-            .textField("some random text")
+            .textField(TEXT)
             .dtos(new ArrayList<>())
             .build();
     }
@@ -262,29 +269,31 @@ public abstract class TestDataForCollections {
     protected DtoWithList createEmptyArrayListMasked() {
         return DtoWithList.builder()
             .isMasked(true)
-            .textField("som*****ext")
+            .textField(TEXT_MASKED)
             .dtos(new ArrayList<>())
             .build();
     }
 
     protected DtoWithQueue createQueue() {
-        PriorityQueue<CollectionElement> queue = new PriorityQueue<>(Comparator.comparing(CollectionElement::getPhoneNumber));
+        PriorityQueue<CollectionElement> queue = new PriorityQueue<>(
+            Comparator.comparing(CollectionElement::getPhoneNumber));
         queue.add(createCollectionElement1());
 
         return DtoWithQueue.builder()
             .isMasked(false)
-            .textField("some random text")
+            .textField(TEXT)
             .dtos(queue)
             .build();
     }
 
     protected DtoWithQueue createQueueMasked() {
-        PriorityQueue<CollectionElement> queue = new PriorityQueue<>(Comparator.comparing(CollectionElement::getPhoneNumber));
+        PriorityQueue<CollectionElement> queue = new PriorityQueue<>(
+            Comparator.comparing(CollectionElement::getPhoneNumber));
         queue.add(createCollectionElement1());
 
         return DtoWithQueue.builder()
             .isMasked(true)
-            .textField("som*****ext")
+            .textField(TEXT_MASKED)
             .dtos(queue)
             .build();
     }

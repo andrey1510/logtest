@@ -2,7 +2,9 @@ package com.logtest.masker;
 
 import com.logtest.masker.annotations.Masked;
 import com.logtest.masker.annotations.MaskedProperty;
-import com.logtest.masker.maskers.CollectionMasker;
+import com.logtest.masker.utils.CollectionProcessor;
+import com.logtest.masker.utils.MaskPatternType;
+import com.logtest.masker.utils.MaskPatterns;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Field;
@@ -22,7 +24,7 @@ public class Masker {
     private static final String ISMASKED_FIELD_NAME = "isMasked";
 
     static {
-        CollectionMasker.setMaskFunction(Masker::processRecursively);
+        CollectionProcessor.setMaskFunction(Masker::processRecursively);
     }
 
     public static <T> T mask(T dto) {
@@ -87,17 +89,17 @@ public class Masker {
         if (value == null) {
             return null;
         } else if (value instanceof LocalDate && hasMaskedProperty(field)) {
-            return MaskUtils.changeLocalDate((LocalDate) value);
+            return MaskPatterns.maskLocalDate((LocalDate) value);
         } else if (value instanceof String) {
             return processStringValue(field, (String) value);
         } else if (value instanceof List) {
-            return CollectionMasker.processList((List<?>) value, field, processed);
+            return CollectionProcessor.processList((List<?>) value, field, processed);
         } else if (value instanceof Set) {
-            return CollectionMasker.processSet((Set<?>) value, field, processed);
+            return CollectionProcessor.processSet((Set<?>) value, field, processed);
         } else if (value instanceof Map) {
-            return CollectionMasker.processMap((Map<?, ?>) value, field, processed);
+            return CollectionProcessor.processMap((Map<?, ?>) value, field, processed);
         } else if (value.getClass().isArray()) {
-            return CollectionMasker.processArray(value, processed);
+            return CollectionProcessor.processArray(value, processed);
         } else if (value.getClass().isAnnotationPresent(Masked.class)) {
             return processRecursively(value, processed);
         } else {
@@ -114,21 +116,13 @@ public class Masker {
         return Optional.ofNullable(field.getAnnotation(MaskedProperty.class))
             .map(annotation -> switch (annotation.type()) {
                 case CUSTOM -> value.replaceAll(annotation.pattern(), annotation.replacement());
-                case TEXT_FIELD -> MaskUtils.maskedTextField(value);
-                case NAME -> MaskUtils.maskedName(value);
-                case EMAIL -> MaskUtils.maskedEmail(value);
-                case PHONE -> MaskUtils.maskedPhoneNumber(value);
-                case CONFIDENTIAL_NUMBER -> MaskUtils.maskedConfidentialNumber(value);
-                case PIN -> MaskUtils.maskedPIN(value);
-                case PAN -> MaskUtils.maskedPAN(value);
-                case BALANCE -> MaskUtils.maskedBalance(value);
-                case PASSPORT_SERIES -> MaskUtils.maskedPassportSeries(value);
-                case PASSPORT_NUMBER -> MaskUtils.maskedPassportNumber(value);
-                case PASSPORT -> MaskUtils.maskedPassport(value);
-                case ISSUER_CODE -> MaskUtils.maskedIssuerCode(value);
-                case ISSUER_NAME -> MaskUtils.maskedIssuerName(value);
-                case OTHER_DUL_SERIES -> MaskUtils.maskedOtherDulSeries(value);
-                case OTHER_DUL_NUMBER -> MaskUtils.maskedOtherDulNumber(value);
+                case TEXT_FIELD -> MaskPatterns.maskTextField(value);
+                case FULL_NAME -> MaskPatterns.maskFullName(value);
+                case FULL_ADDRESS -> MaskPatterns.maskFullAddress(value);
+                case EMAIL -> MaskPatterns.maskEmail(value);
+                case SURNAME -> MaskPatterns.maskSurname(value);
+                case AUTH_DATA -> MaskPatterns.maskAuthData(value);
+                case PASSPORT_SERIES_AND_NUMBER -> MaskPatterns.maskPassportSeriesAndNumber(value);
                 default -> value;
             })
             .orElse(value);

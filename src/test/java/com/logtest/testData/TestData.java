@@ -9,108 +9,69 @@ import com.logtest.dto.NoFieldsForMaskingDto;
 import com.logtest.dto.NoMaskedAnnotationDto;
 import com.logtest.dto.SimpleDtoForMasking;
 import com.logtest.dto.nestedDto.Account;
-import com.logtest.dto.nestedDto.Credentials;
 import com.logtest.dto.nestedDto.IdDocument;
-import com.logtest.dto.nestedDto.NoMaskedAnnotationDtoWithNested;
 import com.logtest.dto.nestedDto.Passport;
 import com.logtest.dto.nestedDto.Person;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public abstract class TestData {
 
-    protected Credentials createCredentials1(){
-        return Credentials.builder()
-            .isMasked(false)
-            .confidentialNumber("333456789333")
-            .pin("1111")
-            .build();
-    }
-
-    protected Credentials createCredentials1Masked(){
-        return Credentials.builder()
-            .isMasked(true)
-            .confidentialNumber("33******9333")
-            .pin("****")
-            .build();
-    }
-
-    protected Credentials createCredentials2(){
-        return Credentials.builder()
-            .isMasked(false)
-            .confidentialNumber("444456789044")
-            .pin("222222")
-            .build();
-    }
-
-    protected Credentials createCredentials2Masked(){
-        return Credentials.builder()
-            .isMasked(true)
-            .confidentialNumber("44******9044")
-            .pin("******")
-            .build();
-    }
-
-    protected Credentials createCredentials3(){
-        return Credentials.builder()
-            .isMasked(false)
-            .confidentialNumber("666656789066")
-            .pin("666666")
-            .build();
-    }
-
-    protected Credentials createCredentials3Masked(){
-        return Credentials.builder()
-            .isMasked(true)
-            .confidentialNumber("66******9066")
-            .pin("******")
-            .build();
-    }
+    private static final String TEXT = "some random text";
+    private static final String TEXT_MASKED = "som**********ext";
+    private static final String AUTH_1 = "1111";
+    private static final String AUTH_2 = "222-22";
+    private static final String AUTH_MASKED = "***";
+    private static final String SURNAME_1 = "Петров";
+    private static final String SURNAME_1_MASKED = "П***";
+    private static final String SURNAME_2 = "Сидоров";
+    private static final String SURNAME_2_MASKED = "С***";
+    private static final String PASSPORT = "6002 66688";
+    private static final String PASSPORT_MASKED = "60******88";
+    private static final String PHONE = "79058453312";
+    private static final String PHONE_MASKED = "79*******12";
+    private static final String ADDRESS = "Москва, ул. Лесная, д. 15";
+    private static final String ADDRESS_MASKED = "Москва, ул. Лес**********";
+    private static final String EMAIL = "testmail@mail.com";
+    private static final String EMAIL_MASKED = "********@mail.com";
+    private static final String FULL_NAME = "Иванов Иван Иванович";
+    private static final String FULL_NAME_MASKED = "И*** Иван Иванович";
+    private static final String NOT_MASKED_TEXT = "not to be masked";
 
     protected Account createAccount1() {
         return Account.builder()
             .isMasked(false)
-            .pan("1000007890123111")
-            .balance("10000")
-            .credentials(Set.of(createCredentials1()))
+            .surname(SURNAME_1)
             .build();
     }
 
     protected Account createAccount1Masked() {
         return Account.builder()
             .isMasked(true)
-            .pan("100000******3111")
-            .balance("***")
-            .credentials(Set.of(createCredentials1Masked()))
+            .surname(SURNAME_1_MASKED)
             .build();
     }
 
     protected Account createAccount2() {
         return Account.builder()
             .isMasked(false)
-            .pan("2000007890123222")
-            .balance("202000")
-            .credentials(Set.of(createCredentials2(), createCredentials3()))
+            .surname(SURNAME_2)
             .build();
     }
 
     protected Account createAccount2Masked() {
         return Account.builder()
             .isMasked(true)
-            .pan("200000******3222")
-            .balance("***")
-            .credentials(Set.of(createCredentials2Masked(), createCredentials3Masked()))
+            .surname(SURNAME_2_MASKED)
             .build();
     }
 
     protected IdDocument createIdDocument1() {
         return IdDocument.builder()
             .isMasked(false)
-            .otherDulSeries("212")
-            .otherDulNumber("T-8008")
+            .dulNumber(AUTH_1)
             .someDate(LocalDate.of(2021, 1, 2))
             .build();
     }
@@ -118,8 +79,7 @@ public abstract class TestData {
     protected IdDocument createIdDocument1Masked() {
         return IdDocument.builder()
             .isMasked(true)
-            .otherDulSeries("2***")
-            .otherDulNumber("****8")
+            .dulNumber(AUTH_MASKED)
             .someDate(LocalDate.of(0, 1, 1))
             .build();
     }
@@ -127,8 +87,7 @@ public abstract class TestData {
     protected IdDocument createIdDocument2() {
         return IdDocument.builder()
             .isMasked(false)
-            .otherDulSeries("3434")
-            .otherDulNumber("S0001")
+            .dulNumber(AUTH_2)
             .someDate(LocalDate.of(2001, 4, 3))
             .build();
     }
@@ -136,8 +95,7 @@ public abstract class TestData {
     protected IdDocument createIdDocument2Masked() {
         return IdDocument.builder()
             .isMasked(true)
-            .otherDulSeries("3***")
-            .otherDulNumber("****1")
+            .dulNumber(AUTH_MASKED)
             .someDate(LocalDate.of(0, 1, 1))
             .build();
     }
@@ -145,11 +103,7 @@ public abstract class TestData {
     protected Passport createPassport() {
         return Passport.builder()
             .isMasked(false)
-            .passport("6002400919")
-            .passportSeries("6002")
-            .passportNumber("400919")
-            .issuerCode("770-220")
-            .issuerName("Заречным РУВД г. Москвы")
+            .passportSeriesAndNumber(PASSPORT)
             .issuanceDate(LocalDate.of(2002, 10, 10))
             .build();
     }
@@ -157,11 +111,7 @@ public abstract class TestData {
     protected Passport createPassportMasked() {
         return Passport.builder()
             .isMasked(true)
-            .passport("60*****919")
-            .passportSeries("60**")
-            .passportNumber("***919")
-            .issuerCode("770-***")
-            .issuerName("Заре ***** . Москвы")
+            .passportSeriesAndNumber(PASSPORT_MASKED)
             .issuanceDate(LocalDate.of(0, 1, 1))
             .build();
     }
@@ -169,10 +119,9 @@ public abstract class TestData {
     protected Person createPerson() {
         return Person.builder()
             .isMasked(false)
-            .fullname("Иванов Иван Иванович")
-            .email("testmail@mail.com")
-            .phoneNumber("79058453312")
-            .textField("some random text")
+            .fullname(FULL_NAME)
+            .email(EMAIL)
+            .textField(TEXT)
             .passport(createPassport())
             .accounts(List.of(createAccount1(),createAccount2()))
             .idDocuments(Map.of("doc1", createIdDocument1(), "doc2", createIdDocument2()))
@@ -182,10 +131,9 @@ public abstract class TestData {
     protected Person createPersonMasked() {
         return Person.builder()
             .isMasked(true)
-            .fullname("И***** Иван Иванович")
-            .email("t*******@m***.com")
-            .phoneNumber("79*******12")
-            .textField("som*****ext")
+            .fullname(FULL_NAME_MASKED)
+            .email(EMAIL_MASKED)
+            .textField(TEXT_MASKED)
             .passport(createPassportMasked())
             .accounts(List.of(createAccount1Masked(),createAccount2Masked()))
             .idDocuments(Map.of("doc1", createIdDocument1Masked(), "doc2", createIdDocument2Masked()))
@@ -195,64 +143,32 @@ public abstract class TestData {
     protected AllPatternDto createAllPatternDto(){
         return AllPatternDto.builder()
             .isMasked(false)
-            .balance("3300")
-            .confidentialNumber("444456789044")
-            .email("testmail@mail.com")
-            .fullname("Иванов Иван Иванович")
-            .pan("2000007890123222")
-            .issuerCode("770-220")
-            .issuerName("Заречным РУВД г. Москвы")
-            .otherDulNumber("S0001")
-            .otherDulSeries("3434")
-            .passport("6002400919")
-            .passportNumber("400919")
-            .passportSeries("6002")
-            .phoneNumber("79058453312")
-            .pin("222222")
-            .textField("some random text")
+            .surname(SURNAME_1)
+            .fullAddress(ADDRESS)
+            .email(EMAIL)
+            .fullname(FULL_NAME)
+            .pan(AUTH_2)
+            .passportSeries(PASSPORT)
+            .textField(TEXT)
             .someDate(LocalDate.of(2001, 4, 3))
             .anotherDate(LocalDate.of(1988, 2, 1))
-            .notForMaskingField("not to be masked")
+            .notForMaskingField(NOT_MASKED_TEXT)
             .build();
     }
 
     protected AllPatternDto createAllPatternDtoMasked(){
         return AllPatternDto.builder()
             .isMasked(true)
-            .balance("***")
-            .confidentialNumber("44******9044")
-            .email("t*******@m***.com")
-            .fullname("И***** Иван Иванович")
-            .pan("200000******3222")
-            .issuerCode("770-***")
-            .issuerName("Заре ***** . Москвы")
-            .otherDulNumber("****1")
-            .otherDulSeries("3***")
-            .passport("60*****919")
-            .passportNumber("***919")
-            .passportSeries("60**")
-            .phoneNumber("79*******12")
-            .pin("******")
-            .textField("som*****ext")
+            .surname(SURNAME_1_MASKED)
+            .fullAddress(ADDRESS_MASKED)
+            .email(EMAIL_MASKED)
+            .fullname(FULL_NAME_MASKED)
+            .pan(AUTH_MASKED)
+            .passportSeries(PASSPORT_MASKED)
+            .textField(TEXT_MASKED)
             .someDate(LocalDate.of(0, 1, 1))
             .anotherDate(LocalDate.of(0, 1, 1))
-            .notForMaskingField("not to be masked")
-            .build();
-    }
-
-    protected NoMaskedAnnotationDtoWithNested createNoMaskedAnnotationDtoWithNested() {
-        return NoMaskedAnnotationDtoWithNested.builder()
-            .someText("some text")
-            .credentials(Set.of(createCredentials1()))
-            .idDocument(createIdDocument1())
-            .build();
-    }
-
-    protected NoMaskedAnnotationDtoWithNested createNoMaskedAnnotationDtoWithNestedMasked() {
-        return NoMaskedAnnotationDtoWithNested.builder()
-            .someText("some text")
-            .credentials(Set.of(createCredentials1Masked()))
-            .idDocument(createIdDocument1Masked())
+            .notForMaskingField(NOT_MASKED_TEXT)
             .build();
     }
 
@@ -264,7 +180,7 @@ public abstract class TestData {
         for (int i = levels; i >= 1; i--) {
             current = DtoForRecursion.builder()
                 .isMasked(false)
-                .pin("1111")
+                .pin(AUTH_1)
                 .dto(current)
                 .build();
         }
@@ -274,67 +190,67 @@ public abstract class TestData {
     protected NoFieldsForMaskingDto createNoFieldsForMaskingDto() {
         return NoFieldsForMaskingDto.builder()
             .isMasked(false)
-            .someText("some text")
+            .someText(TEXT)
             .build();
     }
 
     protected NoFieldsForMaskingDto createNoFieldsForMaskingDtoMasked() {
         return NoFieldsForMaskingDto.builder()
             .isMasked(true)
-            .someText("some text")
+            .someText(TEXT)
             .build();
     }
 
     protected NoMaskedAnnotationDto createNoMaskedAnnotationDto() {
         return NoMaskedAnnotationDto.builder()
             .isMasked(false)
-            .pin("1111")
+            .pin(AUTH_1)
             .build();
     }
 
     protected DtoWithWrongIsMaskedField createDtoWithWrongIsMaskedField() {
         return DtoWithWrongIsMaskedField.builder()
             .isMasked("false")
-            .pin("1111")
+            .pin(AUTH_1)
             .build();
     }
 
     protected DtoWithWrongIsMaskedField createDtoWithWrongIsMaskedFieldMasked() {
         return DtoWithWrongIsMaskedField.builder()
             .isMasked("false")
-            .pin("****")
+            .pin(AUTH_MASKED)
             .build();
     }
 
     protected DtoWithNoIsMaskedField createDtoWithNoIsMaskedField() {
         return DtoWithNoIsMaskedField.builder()
-            .pin("1111")
+            .pin(AUTH_1)
             .build();
     }
 
     protected DtoWithNoIsMaskedField createDtoWithNoIsMaskedFieldMasked() {
         return DtoWithNoIsMaskedField.builder()
-            .pin("****")
+            .pin(AUTH_MASKED)
             .build();
     }
 
     protected SimpleDtoForMasking createSimpleDtoForMaskingIsMaskedTrue() {
         return SimpleDtoForMasking.builder()
             .isMasked(true)
-            .phoneNumber("79058453312")
+            .phoneNumber(PHONE)
             .build();
     }
 
     protected SimpleDtoForMasking createSimpleDtoForMaskingIsMaskedNull() {
         return SimpleDtoForMasking.builder()
-            .phoneNumber("79058453312")
+            .phoneNumber(PHONE)
             .build();
     }
 
     protected SimpleDtoForMasking createSimpleDtoForMaskingMasked() {
         return SimpleDtoForMasking.builder()
             .isMasked(true)
-            .phoneNumber("79*******12")
+            .phoneNumber(PHONE_MASKED)
             .build();
     }
 
@@ -342,13 +258,13 @@ public abstract class TestData {
     protected DtoWithWrongPatternAndType createDtoWithWrongPatternAndType() {
         return DtoWithWrongPatternAndType.builder()
             .isMasked(false)
-            .correctPatternAndType("1111")
-            .wrongPattern("some text")
+            .correctPatternAndType(AUTH_1)
+            .wrongPattern(TEXT)
             .wrongType(1234)
             .nestedDto(DtoWithWrongPatternAndType.builder()
                 .isMasked(false)
-                .correctPatternAndType("1111")
-                .wrongPattern("some text")
+                .correctPatternAndType(AUTH_1)
+                .wrongPattern(TEXT)
                 .wrongType(1234)
                 .build())
             .build();
@@ -357,13 +273,13 @@ public abstract class TestData {
     protected DtoWithWrongPatternAndType createDtoWithWrongPatternAndTypeMasked() {
         return DtoWithWrongPatternAndType.builder()
             .isMasked(true)
-            .correctPatternAndType("****")
-            .wrongPattern("some text")
+            .correctPatternAndType(AUTH_MASKED)
+            .wrongPattern(TEXT)
             .wrongType(1234)
             .nestedDto(DtoWithWrongPatternAndType.builder()
                 .isMasked(true)
-                .correctPatternAndType("****")
-                .wrongPattern("some text")
+                .correctPatternAndType(AUTH_MASKED)
+                .wrongPattern(TEXT)
                 .wrongType(1234)
                 .build())
             .build();

@@ -1,7 +1,6 @@
 package com.logtest.dto;
 
-import com.logtest.dto.dtoForCollection.CollectionElement;
-import com.logtest.masker.MaskPatternType;
+import com.logtest.masker.utils.MaskPatternType;
 import com.logtest.masker.annotations.Masked;
 import com.logtest.masker.annotations.MaskedProperty;
 import lombok.AllArgsConstructor;
@@ -18,7 +17,7 @@ public class DtoForRecursion {
 
     private boolean isMasked;
 
-    @MaskedProperty(type = MaskPatternType.PIN)
+    @MaskedProperty(type = MaskPatternType.AUTH_DATA)
     private String pin;
 
     private DtoForRecursion dto;

@@ -1,4 +1,4 @@
-package com.logtest.masker.maskers;
+package com.logtest.masker.utils;
 
 import com.logtest.masker.annotations.Masked;
 import lombok.Setter;
@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 @Slf4j
-public class CollectionMasker {
+public class CollectionProcessor {
 
     @Setter
     private static BiFunction<Object, Map<Object, Object>, Object> maskFunction;

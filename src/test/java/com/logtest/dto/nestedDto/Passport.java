@@ -1,6 +1,6 @@
 package com.logtest.dto.nestedDto;
 
-import com.logtest.masker.MaskPatternType;
+import com.logtest.masker.utils.MaskPatternType;
 import com.logtest.masker.annotations.Masked;
 import com.logtest.masker.annotations.MaskedProperty;
 import lombok.AllArgsConstructor;
@@ -19,20 +19,8 @@ public class Passport {
 
     private boolean isMasked;
 
-    @MaskedProperty(type = MaskPatternType.PASSPORT)
-    private String passport;
-
-    @MaskedProperty(type = MaskPatternType.PASSPORT_SERIES)
-    private String passportSeries;
-
-    @MaskedProperty(type = MaskPatternType.PASSPORT_NUMBER)
-    private String passportNumber;
-
-    @MaskedProperty(type = MaskPatternType.ISSUER_CODE)
-    private String issuerCode;
-
-    @MaskedProperty(type = MaskPatternType.ISSUER_NAME)
-    private String issuerName;
+    @MaskedProperty(type = MaskPatternType.PASSPORT_SERIES_AND_NUMBER)
+    private String passportSeriesAndNumber;
 
     @MaskedProperty(type = MaskPatternType.LOCALDATE)
     private LocalDate issuanceDate;

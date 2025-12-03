@@ -1,6 +1,6 @@
 package com.logtest.dto;
 
-import com.logtest.masker.MaskPatternType;
+import com.logtest.masker.utils.MaskPatternType;
 import com.logtest.masker.annotations.Masked;
 import com.logtest.masker.annotations.MaskedProperty;
 import lombok.AllArgsConstructor;
@@ -17,13 +17,13 @@ public class DtoWithWrongPatternAndType {
 
     private boolean isMasked;
 
-    @MaskedProperty(type = MaskPatternType.PIN)
+    @MaskedProperty(type = MaskPatternType.AUTH_DATA)
     private String correctPatternAndType;
 
     @MaskedProperty(type = MaskPatternType.EMAIL)
     private String wrongPattern;
 
-    @MaskedProperty(type = MaskPatternType.PIN)
+    @MaskedProperty(type = MaskPatternType.AUTH_DATA)
     private Integer wrongType;
 
     private DtoWithWrongPatternAndType nestedDto;
