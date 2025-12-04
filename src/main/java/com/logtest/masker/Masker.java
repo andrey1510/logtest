@@ -87,10 +87,10 @@ public class Masker {
 
         if (value == null) {
             return null;
-        } else if (value instanceof Temporal  && field.getAnnotation(MaskedProperty.class) != null) {
-            return DepartmentSelector.maskTemporal(field, value);
         } else if (value instanceof String && field.getAnnotation(MaskedProperty.class) != null) {
             return DepartmentSelector.maskString(field, (String) value);
+        } else if (value instanceof Temporal  && field.getAnnotation(MaskedProperty.class) != null) {
+            return DepartmentSelector.maskTemporal(field, value);
         } else if (value instanceof List) {
             return CollectionProcessor.processList((List<?>) value, field, processed);
         } else if (value instanceof Set) {
@@ -118,7 +118,7 @@ public class Masker {
             }
 
         } catch (Exception e) {
-            log.info("Error setting isMasked flag  in class {} : {}", dto.getClass().getSimpleName(), e.getMessage());
+            log.info("isMasked flag could not be set in class {} : {}", dto.getClass().getSimpleName(), e.getMessage());
         }
     }
 }
