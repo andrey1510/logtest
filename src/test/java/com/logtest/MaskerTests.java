@@ -80,4 +80,9 @@ public class MaskerTests extends TestData {
         assertEquals(createDtoWithWrongPatternAndTypeMasked(), Masker.mask(createDtoWithWrongPatternAndType()));
     }
 
+    @Test
+    void mask_testDtoWithBoolean() {
+        assertEquals(createDtoWithBooleanMasked(), Masker.mask(createDtoWithBoolean()));
+    }
+
 }

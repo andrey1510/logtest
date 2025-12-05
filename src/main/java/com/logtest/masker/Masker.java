@@ -4,15 +4,12 @@ import com.logtest.masker.annotations.Masked;
 import com.logtest.masker.annotations.MaskedProperty;
 import com.logtest.masker.utils.CollectionProcessor;
 import com.logtest.masker.utils.MaskPatterns;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.temporal.Temporal;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
@@ -68,22 +65,16 @@ public class Masker {
     }
 
     private static void copyAndMaskFields(Object source, Object target, Map<Object, Object> processed) {
-        List<Field> fields = new ArrayList<>();
-        Class<?> currentClass = source.getClass();
-
-        while (currentClass != null && currentClass != Object.class) {
-            Collections.addAll(fields, currentClass.getDeclaredFields());
-            currentClass = currentClass.getSuperclass();
-        }
-
-        fields.forEach(field -> {
-            field.setAccessible(true);
-            try {
-                field.set(target, processFieldValue(field, field.get(source), processed));
-            } catch (IllegalAccessException e) {
-                log.error("Failed to access field {}: {}", field.getName(), e.getMessage());
-            }
-        });
+        org.springframework.util.ReflectionUtils.doWithFields(
+            source.getClass(),
+            field -> {
+                org.springframework.util.ReflectionUtils.makeAccessible(field);
+                Object value = org.springframework.util.ReflectionUtils.getField(field, source);
+                Object maskedValue = processFieldValue(field, value, processed);
+                org.springframework.util.ReflectionUtils.setField(field, target, maskedValue);
+            },
+            field -> !field.isSynthetic()
+        );
     }
 
     private static Object processFieldValue(Field field, Object value, Map<Object, Object> processed) {
@@ -131,13 +122,14 @@ public class Masker {
         };
     }
 
-    @SneakyThrows
     private static void setMaskedFlag(Object dto) {
+        Field field = org.springframework.util.ReflectionUtils.findField(dto.getClass(), ISMASKED_FIELD_NAME);
+        if (field == null) return;
 
-        Field maskedField = dto.getClass().getDeclaredField(ISMASKED_FIELD_NAME);
-        maskedField.setAccessible(true);
+        Class<?> fieldType = field.getType();
+        if (fieldType != boolean.class && fieldType != Boolean.class) return;
 
-        if (maskedField.getType() == boolean.class || maskedField.getType() == Boolean.class)
-            maskedField.set(dto, true);
+        org.springframework.util.ReflectionUtils.makeAccessible(field);
+        org.springframework.util.ReflectionUtils.setField(field, dto, true);
     }
 }

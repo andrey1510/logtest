@@ -2,6 +2,7 @@ package com.logtest.testData;
 
 import com.logtest.dto.AllPatternDto;
 import com.logtest.dto.DtoForRecursion;
+import com.logtest.dto.DtoWithBoolean;
 import com.logtest.dto.DtoWithNoIsMaskedField;
 import com.logtest.dto.DtoWithWrongIsMaskedField;
 import com.logtest.dto.DtoWithWrongPatternAndType;
@@ -287,6 +288,19 @@ public abstract class TestData {
             .build();
     }
 
+    protected DtoWithBoolean createDtoWithBoolean() {
+        return DtoWithBoolean.builder()
+            .isMasked(false)
+            .phoneNumber(PHONE)
+            .build();
+    }
+
+    protected DtoWithBoolean createDtoWithBooleanMasked() {
+        return DtoWithBoolean.builder()
+            .isMasked(true)
+            .phoneNumber(PHONE_MASKED)
+            .build();
+    }
 }
 
 
