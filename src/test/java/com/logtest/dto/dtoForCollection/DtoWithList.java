@@ -22,5 +22,5 @@ public class DtoWithList {
     @MaskedProperty(type = MaskPatternType.TEXT_FIELD_ALT)
     private String textField;
 
-    private List<CollectionElement> dtos;
+    private List<CollectionDtoElement> dtos;
 }

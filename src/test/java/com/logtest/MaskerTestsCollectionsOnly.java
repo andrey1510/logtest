@@ -86,8 +86,15 @@ public class MaskerTestsCollectionsOnly extends TestDataForCollections {
 
         assertEquals(expected, Masker.mask(createHashSet2()).toString());
         assertEquals(expected, Masker.mask(createSetImmutable2()).toString());
-
-
     }
 
+    @Test
+    void mask_testCollectionWithValues(){
+        assertEquals(createDtoWithCollectionsMasked(), Masker.mask(createDtoWithCollections()));
+    }
+
+    @Test
+    void mask_testDtoInCollectionWithValuesInContainer(){
+        assertEquals(createDtoWithCollectionsInContainerMasked(), Masker.mask(createDtoWithCollectionsInContainer()));
+    }
 }

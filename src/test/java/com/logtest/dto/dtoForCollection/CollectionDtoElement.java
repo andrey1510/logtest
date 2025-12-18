@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CollectionElement {
+public class CollectionDtoElement {
 
     private boolean isMasked;
 

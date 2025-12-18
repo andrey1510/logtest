@@ -22,5 +22,5 @@ public class DtoWithSet {
     @MaskedProperty(type = MaskPatternType.TEXT_FIELD_ALT)
     private String textField;
 
-    private Set<CollectionElement> dtos;
+    private Set<CollectionDtoElement> dtos;
 }

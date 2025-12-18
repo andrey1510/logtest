@@ -1,12 +1,15 @@
 package com.logtest.testData;
 
-import com.logtest.dto.dtoForCollection.CollectionElement;
+import com.logtest.dto.dtoForCollection.CollectionDtoElement;
+import com.logtest.dto.dtoForCollection.ContainerForDtoWithCollectionsRegularElements;
 import com.logtest.dto.dtoForCollection.DtoWithArray;
+import com.logtest.dto.dtoForCollection.DtoWithCollectionsRegularElements;
 import com.logtest.dto.dtoForCollection.DtoWithList;
 import com.logtest.dto.dtoForCollection.DtoWithMap;
 import com.logtest.dto.dtoForCollection.DtoWithQueue;
 import com.logtest.dto.dtoForCollection.DtoWithSet;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -30,43 +33,43 @@ public abstract class TestDataForCollections {
     private static final String PHONE_2_MASKED = "89*******18";
     private static final String PHONE_3 = "89058003318";
 
-    protected CollectionElement createCollectionElement1() {
-        return CollectionElement.builder()
+    protected CollectionDtoElement createCollectionElement1() {
+        return CollectionDtoElement.builder()
             .isMasked(false)
             .phoneNumber(PHONE_1)
             .build();
     }
 
-    protected CollectionElement createCollectionElement1Masked() {
-        return CollectionElement.builder()
+    protected CollectionDtoElement createCollectionElement1Masked() {
+        return CollectionDtoElement.builder()
             .isMasked(true)
             .phoneNumber(PHONE_1_MASKED)
             .build();
     }
 
-    protected CollectionElement createCollectionElement2() {
-        return CollectionElement.builder()
+    protected CollectionDtoElement createCollectionElement2() {
+        return CollectionDtoElement.builder()
             .isMasked(false)
             .phoneNumber(PHONE_2 )
             .build();
     }
 
-    protected CollectionElement createCollectionElement3Masked() {
-        return CollectionElement.builder()
+    protected CollectionDtoElement createCollectionElement3Masked() {
+        return CollectionDtoElement.builder()
             .isMasked(true)
             .phoneNumber(PHONE_2_MASKED)
             .build();
     }
 
-    protected CollectionElement createCollectionElement3() {
-        return CollectionElement.builder()
+    protected CollectionDtoElement createCollectionElement3() {
+        return CollectionDtoElement.builder()
             .isMasked(false)
             .phoneNumber(PHONE_3)
             .build();
     }
 
-    protected CollectionElement createCollectionElement2Masked() {
-        return CollectionElement.builder()
+    protected CollectionDtoElement createCollectionElement2Masked() {
+        return CollectionDtoElement.builder()
             .isMasked(true)
             .phoneNumber(PHONE_2_MASKED)
             .build();
@@ -124,7 +127,7 @@ public abstract class TestDataForCollections {
         return DtoWithArray.builder()
             .isMasked(false)
             .textField(TEXT)
-            .dtos(new CollectionElement[]{createCollectionElement1(), createCollectionElement2()})
+            .dtos(new CollectionDtoElement[]{createCollectionElement1(), createCollectionElement2()})
             .build();
     }
 
@@ -132,7 +135,7 @@ public abstract class TestDataForCollections {
         return DtoWithArray.builder()
             .isMasked(true)
             .textField(TEXT_MASKED)
-            .dtos(new CollectionElement[]{createCollectionElement1Masked(), createCollectionElement2Masked()})
+            .dtos(new CollectionDtoElement[]{createCollectionElement1Masked(), createCollectionElement2Masked()})
             .build();
     }
 
@@ -305,8 +308,8 @@ public abstract class TestDataForCollections {
     }
 
     protected DtoWithQueue createQueue() {
-        PriorityQueue<CollectionElement> queue = new PriorityQueue<>(
-            Comparator.comparing(CollectionElement::getPhoneNumber));
+        PriorityQueue<CollectionDtoElement> queue = new PriorityQueue<>(
+            Comparator.comparing(CollectionDtoElement::getPhoneNumber));
         queue.add(createCollectionElement1());
 
         return DtoWithQueue.builder()
@@ -317,14 +320,52 @@ public abstract class TestDataForCollections {
     }
 
     protected DtoWithQueue createQueueMasked() {
-        PriorityQueue<CollectionElement> queue = new PriorityQueue<>(
-            Comparator.comparing(CollectionElement::getPhoneNumber));
+        PriorityQueue<CollectionDtoElement> queue = new PriorityQueue<>(
+            Comparator.comparing(CollectionDtoElement::getPhoneNumber));
         queue.add(createCollectionElement1());
 
         return DtoWithQueue.builder()
             .isMasked(true)
             .textField(TEXT_MASKED)
             .dtos(queue)
+            .build();
+    }
+
+    protected DtoWithCollectionsRegularElements createDtoWithCollections() {
+        return DtoWithCollectionsRegularElements.builder()
+            .isMasked(false)
+            .inns(new LinkedList<>(List.of("6454093632", "642125911472")))
+            .kpps(Set.of("645401003", "64540", "6454011111111111111111111"))
+            .dates(Map.of(
+                "key1", LocalDate.of(2002, 10, 10),
+                "key2", LocalDate.of(2001, 4, 3)
+            ))
+            .build();
+    }
+
+    protected DtoWithCollectionsRegularElements createDtoWithCollectionsMasked() {
+        return DtoWithCollectionsRegularElements.builder()
+            .isMasked(true)
+            .inns(new LinkedList<>(List.of("64*****632", "64*****11472")))
+            .kpps(Set.of("64******3", "*****"))
+            .dates(Map.of(
+                "key1", LocalDate.of(0, 1, 1),
+                "key2", LocalDate.of(0, 1, 1)
+            ))
+            .build();
+    }
+
+    protected ContainerForDtoWithCollectionsRegularElements createDtoWithCollectionsInContainer(){
+        return ContainerForDtoWithCollectionsRegularElements.builder()
+            .isMasked(false)
+            .dtos(new ArrayList<>(List.of(createDtoWithCollections())))
+            .build();
+    }
+
+    protected ContainerForDtoWithCollectionsRegularElements createDtoWithCollectionsInContainerMasked(){
+        return ContainerForDtoWithCollectionsRegularElements.builder()
+            .isMasked(true)
+            .dtos(new ArrayList<>(List.of(createDtoWithCollectionsMasked())))
             .build();
     }
 }

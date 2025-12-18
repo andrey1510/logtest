@@ -20,7 +20,7 @@ public class DtoWithArray {
     @MaskedProperty(type = MaskPatternType.TEXT_FIELD_ALT)
     private String textField;
 
-    private CollectionElement[] dtos;
+    private CollectionDtoElement[] dtos;
 }
 
 

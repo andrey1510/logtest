@@ -22,5 +22,5 @@ public class DtoWithQueue {
     @MaskedProperty(type = MaskPatternType.TEXT_FIELD_ALT)
     private String textField;
 
-    private Queue<CollectionElement> dtos;
+    private Queue<CollectionDtoElement> dtos;
 }

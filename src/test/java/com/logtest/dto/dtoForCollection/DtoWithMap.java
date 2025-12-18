@@ -22,5 +22,5 @@ public class DtoWithMap {
     @MaskedProperty(type = MaskPatternType.TEXT_FIELD_ALT)
     private String textField;
 
-    private Map<String, CollectionElement> dtos;
+    private Map<String, CollectionDtoElement> dtos;
 }
