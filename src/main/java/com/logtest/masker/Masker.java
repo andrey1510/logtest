@@ -9,19 +9,15 @@ import com.logtest.masker.patterns.MaskPatternsAlt;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.ReflectionUtils;
 
-import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.temporal.Temporal;
-import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
-
 
 @Slf4j
 public class Masker {
@@ -30,6 +26,8 @@ public class Masker {
 
     static {
         NestedDtoCollectionProcessor.setMaskFunction(Masker::processRecursively);
+        NestedDtoCollectionProcessor.setStringMaskFunction(Masker::processStringValue);
+        NestedDtoCollectionProcessor.setTemporalMaskFunction(Masker::processTemporalValue);
     }
 
     public static <T> T mask(T dto) {
@@ -37,7 +35,6 @@ public class Masker {
     }
 
     private static <T> T processRecursively(T dto, Map<Object, Object> processed) {
-
         if (dto == null) {
             return null;
         } else if (processed.containsKey(dto)) {
@@ -91,14 +88,6 @@ public class Masker {
             return processStringValue(maskedProperty.type(), (String) value);
         } else if (value instanceof Temporal && maskedProperty != null) {
             return processTemporalValue(maskedProperty.type(), value);
-        } else if (value instanceof List && maskedProperty != null) {
-            return processAnnotatedList((List<?>) value, maskedProperty.type());
-        } else if (value instanceof Set && maskedProperty != null ) {
-            return processAnnotatedSet((Set<?>) value, maskedProperty.type());
-        } else if (value instanceof Map && maskedProperty != null) {
-            return processAnnotatedMap((Map<?, ?>) value, maskedProperty.type());
-        } else if (value.getClass().isArray() && maskedProperty != null) {
-            return processAnnotatedArray(value, maskedProperty.type());
         } else if (value instanceof List) {
             return NestedDtoCollectionProcessor.processList((List<?>) value, field, processed);
         } else if (value instanceof Set) {
@@ -106,7 +95,7 @@ public class Masker {
         } else if (value instanceof Map) {
             return NestedDtoCollectionProcessor.processMap((Map<?, ?>) value, field, processed);
         } else if (value.getClass().isArray()) {
-            return NestedDtoCollectionProcessor.processArray(value, processed);
+            return NestedDtoCollectionProcessor.processArray(value, field, processed);
         } else if (value.getClass().isAnnotationPresent(Masked.class)) {
             return processRecursively(value, processed);
         } else {
@@ -114,17 +103,17 @@ public class Masker {
         }
     }
 
-    private static Object processTemporalValue(MaskPatternType type, Object value) {
+    public static Temporal processTemporalValue(MaskPatternType type, Object value) {
         return switch (type) {
             case LOCAL_DATE -> value instanceof LocalDate date ?
-                MaskPatternsAlt.maskLocalDate(date) : value;
+                MaskPatternsAlt.maskLocalDate(date) : (Temporal) value;
             case OFFSET_DATE_TIME -> value instanceof OffsetDateTime dateTime ?
-                MaskPatternsAlt.maskOffsetDateTime(dateTime) : value;
-            default -> value;
+                MaskPatternsAlt.maskOffsetDateTime(dateTime) : (Temporal) value;
+            default -> (Temporal) value;
         };
     }
 
-    private static String processStringValue(MaskPatternType type, String value) {
+    public static String processStringValue(MaskPatternType type, String value) {
         return switch (type) {
             case EMAIL -> MaskPatterns.maskEmail(value);
             case INN -> MaskPatterns.maskInn(value);
@@ -143,53 +132,6 @@ public class Masker {
             case PHONE -> MaskPatterns.maskPhoneNumber(value);
             default -> value;
         };
-    }
-
-    private static List<?> processAnnotatedList(List<?> collection, MaskPatternType type) {
-        return collection.stream()
-            .map(item -> processAnnotatedCollectionElement(item, type))
-            .toList();
-    }
-
-    private static Set<?> processAnnotatedSet(Set<?> collection, MaskPatternType type) {
-        return collection.stream()
-            .map(item -> processAnnotatedCollectionElement(item, type))
-            .collect(Collectors.toCollection(() -> Collections.newSetFromMap(new IdentityHashMap<>())));
-    }
-
-    private static Map<?, ?> processAnnotatedMap(Map<?, ?> map, MaskPatternType type) {
-        return map.entrySet().stream()
-            .collect(Collectors.toMap(
-                Map.Entry::getKey,
-                entry -> processAnnotatedCollectionElement(entry.getValue(), type),
-                (existing, replacement) -> replacement,
-                java.util.HashMap::new
-            ));
-    }
-
-    private static Object processAnnotatedArray(Object array, MaskPatternType type) {
-        int length = Array.getLength(array);
-        Object newArray = Array.newInstance(array.getClass().getComponentType(), length);
-
-        for (int i = 0; i < length; i++) {
-            Object item = Array.get(array, i);
-            Object processedItem = processAnnotatedCollectionElement(item, type);
-            Array.set(newArray, i, processedItem);
-        }
-
-        return newArray;
-    }
-
-    private static Object processAnnotatedCollectionElement(Object item, MaskPatternType type) {
-        if (item == null) {
-            return null;
-        } else if (item instanceof String stringValue) {
-            return processStringValue(type, stringValue);
-        } else if (item instanceof Temporal temporalValue) {
-            return processTemporalValue(type, temporalValue);
-        } else {
-            return item;
-        }
     }
 
     private static void setMaskedFlag(Object dto) {

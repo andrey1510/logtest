@@ -87,8 +87,6 @@ public class MaskerTests extends TestData {
 
     @Test
     void mask_testbjectFieldDto() {
-        System.out.println(createObjectFieldDtoMasked());
-        System.out.println(createObjectFieldDto());
         assertEquals(createObjectFieldDtoMasked(), Masker.mask(createObjectFieldDto()));
     }
 }

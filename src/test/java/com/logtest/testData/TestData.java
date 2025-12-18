@@ -316,9 +316,9 @@ public abstract class TestData {
             .email(EMAIL)
             .textField(TEXT)
             .textFieldMap(new HashMap<>() {{
-                put("name", "И***");
-                put("patronymic", "И*****ич");
-                put("surname", "И****в");
+                put("name", "Иван");
+                put("patronymic", "Иванович");
+                put("surname", "Иванов");
             }})
             .textFieldMapDto(new HashMap<>() {{
                 put("email", new ObjectFieldDto(false, EMAIL, null, null, null ));
@@ -332,9 +332,9 @@ public abstract class TestData {
             .email(EMAIL_MASKED)
             .textField(TEXT_MASKED)
             .textFieldMap(new HashMap<>() {{
-                put("name", "Иван");
-                put("patronymic", "Иванович");
-                put("surname", "Иванов");
+                put("name", "И***");
+                put("patronymic", "И*****ич");
+                put("surname", "И****в");
             }})
             .textFieldMapDto(new HashMap<>() {{
                 put("email", new ObjectFieldDto(true, EMAIL_MASKED, null, null, null ));
