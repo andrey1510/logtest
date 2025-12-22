@@ -90,10 +90,8 @@ public class Masker {
 
         if (value == null) {
             return null;
-        } else if (value instanceof Temporal) {
-            return processTemporalValue(field, value);
-        } else if (value instanceof String) {
-            return processStringValue(field, (String) value);
+        } else if (value instanceof String || value instanceof Temporal) {
+            return processValue(field, value);
         } else if (value instanceof List) {
             return collectionMasker.processList((List<?>) value, field, processed);
         } else if (value instanceof Set) {
@@ -109,22 +107,18 @@ public class Masker {
         }
     }
 
-    private Object processTemporalValue(Field field, Object value) {
+    private /*String*/Object processValue(Field field, Object value) {
 
-        return processFieldByMaskProcessor(field, value);
-    }
+//        //1 вариант
+//        return (String) Optional.ofNullable(field.getAnnotation(MaskedProperty.class))
+//                .map(MaskedProperty::type)
+//                .map(type -> maskProcessorMap.get(type))
+//                .map(maskProcessor -> maskProcessor.process(value))
+//                .orElse(value);
 
-    private /*String*/Object processStringValue(Field field, String value) {
-        //1 вариант
-/*        return (String) Optional.ofNullable(field.getAnnotation(MaskedProperty.class))
-                .map(MaskedProperty::type)
-                .map(type -> maskStringProcessorMap.get(type))
-                .map(maskProcessor -> maskProcessor.process(value))
-                .orElse(value);
-        */
         //2 вариант
 
-        return processFieldByMaskProcessor(field, value);
+       return processFieldByMaskProcessor(field, value);
 
         // return Optional.ofNullable(field.getAnnotation(MaskedProperty.class))
         //     .map(annotation -> switch (annotation.type()) {
@@ -160,10 +154,9 @@ public class Masker {
         if (field.getAnnotation(MaskedProperty.class) != null) {
             MaskPatternType maskPatternType = field.getAnnotation(MaskedProperty.class).type();
             MaskProcessor maskProcessor = maskProcessorMap.get(maskPatternType);
-            if (Objects.isNull(maskProcessor)) {
-                // ToDo - свалится ли весь процесс маскирования, если не найден процессор для анотации.
-                throw new IllegalArgumentException(String.format("Не найден процессор для типа маскирования %s", maskPatternType));
-            }
+
+            if (Objects.isNull(maskProcessor)) return value;
+
             return maskProcessor.process(value);
         } else {
             return value;

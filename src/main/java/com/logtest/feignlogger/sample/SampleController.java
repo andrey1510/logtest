@@ -16,14 +16,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api")
 public class SampleController {
 
-    private final FeignClient feignClient;
-
-    @PostMapping("/test-feign")
-    public ResponseEntity<ResponseDto> testFeignClient(
-        @RequestBody RequestDto request,
-        @RequestHeader(value = "Authorization", required = false) String authHeader
-    ) {
-        ResponseDto response = feignClient.get(request, authHeader);
-        return ResponseEntity.ok(response);
-    }
+   // private final FeignClient feignClient;
+//
+//    @PostMapping("/test-feign")
+//    public ResponseEntity<ResponseDto> testFeignClient(
+//        @RequestBody RequestDto request,
+//        @RequestHeader(value = "Authorization", required = false) String authHeader
+//    ) {
+//        ResponseDto response = feignClient.get(request, authHeader);
+//        return ResponseEntity.ok(response);
+//    }
 }

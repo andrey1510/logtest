@@ -16,7 +16,7 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-public class SampleController {
+public class SampleMaskerController {
 
     private final Masker masker;
 
