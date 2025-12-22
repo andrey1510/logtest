@@ -1,4 +1,4 @@
-package com.logtest.masker.patterns;
+package com.logtest.masker;
 
 public enum MaskPatternType {
     AUTH_DATA_ALT,
