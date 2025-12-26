@@ -5,7 +5,6 @@ import com.logtest.masker.annotations.MaskedProperty;
 import com.logtest.masker.processors.CollectionProcessor;
 import com.logtest.masker.processors.ValueProcessor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.util.ReflectionUtils;
 import java.lang.reflect.Field;
 import java.time.temporal.Temporal;
 import java.util.IdentityHashMap;
@@ -13,6 +12,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+
+import static org.springframework.util.ReflectionUtils.doWithFields;
+import static org.springframework.util.ReflectionUtils.findField;
+import static org.springframework.util.ReflectionUtils.getField;
+import static org.springframework.util.ReflectionUtils.makeAccessible;
+import static org.springframework.util.ReflectionUtils.setField;
 
 @Slf4j
 public class Masker {
@@ -62,12 +67,12 @@ public class Masker {
     }
 
     private static void copyAndMaskFields(Object source, Object target, Map<Object, Object> processed) {
-        ReflectionUtils.doWithFields(
+        doWithFields(
             source.getClass(),
             field -> {
-                ReflectionUtils.makeAccessible(field);
-                Object maskedValue = processFieldValue(field, ReflectionUtils.getField(field, source), processed);
-                ReflectionUtils.setField(field, target, maskedValue);
+                makeAccessible(field);
+                Object maskedValue = processFieldValue(field, getField(field, source), processed);
+                setField(field, target, maskedValue);
             },
             field -> !field.isSynthetic()
         );
@@ -96,13 +101,13 @@ public class Masker {
     }
 
     private static void setMaskedFlag(Object dto) {
-        Field field = ReflectionUtils.findField(dto.getClass(), IS_MASKED_FIELD);
+        Field field = findField(dto.getClass(), IS_MASKED_FIELD);
         if (field == null) return;
 
         Class<?> fieldType = field.getType();
         if (fieldType != boolean.class && fieldType != Boolean.class) return;
 
-        ReflectionUtils.makeAccessible(field);
-        ReflectionUtils.setField(field, dto, true);
+        makeAccessible(field);
+        setField(field, dto, true);
     }
 }

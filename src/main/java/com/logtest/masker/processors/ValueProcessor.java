@@ -47,7 +47,6 @@ public class ValueProcessor {
                 temporal -> temporal instanceof LocalDate date
                     ? MaskPatterns.maskLocalDate(date)
                     : temporal),
-
             entry(MaskPatternType.OFFSET_DATE_TIME,
                 temporal -> temporal instanceof OffsetDateTime dateTime
                     ? MaskPatterns.maskOffsetDateTime(dateTime)
