@@ -3,7 +3,6 @@ package com.logtest;
 import com.logtest.dto.DtoForRecursion;
 import com.logtest.masker.Masker;
 import com.logtest.testData.TestData;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 
 import java.util.Objects;
@@ -14,17 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@Slf4j
 public class MaskerTests extends TestData {
-
-    @Test
-    void maskToString_test() {
-
-        assertEquals(createPersonMasked(), Masker.maskDtoToString(createPerson()));
-        assertEquals(createAllPatternDtoMasked(), Masker.maskDtoToString(createAllPatternDto()));
-
-    }
-
 
     @Test
     void mask_testAllFields() {

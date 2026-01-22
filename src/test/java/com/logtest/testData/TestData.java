@@ -44,11 +44,11 @@ public abstract class TestData {
     private static final String INN = "642125911472";
     private static final String INN_MASKED = "64*****11472";
     private static final LocalDate DATE_1 = LocalDate.of(2021, 1, 2);
-    private static final LocalDate DATE_1_MASKED = LocalDate.of(1, 1, 2);
+    private static final LocalDate DATE_1_MASKED = LocalDate.of(0, 1, 2);
     private static final LocalDate DATE_2 = LocalDate.of(2001, 4, 3);
-    private static final LocalDate DATE_2_MASKED = LocalDate.of(1, 4, 3);
+    private static final LocalDate DATE_2_MASKED = LocalDate.of(0, 4, 3);
     private static final OffsetDateTime DATE_TIME_1 = OffsetDateTime.of(2023, 4, 4, 4, 4, 4, 4, ZoneOffset.UTC);
-    private static final OffsetDateTime DATE_TIME_1_MASKED = OffsetDateTime.of(1, 4, 4, 4, 4, 4, 4, ZoneOffset.UTC);
+    private static final OffsetDateTime DATE_TIME_1_MASKED = OffsetDateTime.of(0, 4, 4, 4, 4, 4, 4, ZoneOffset.UTC);
 
     protected Account createAccount1() {
         return Account.builder()

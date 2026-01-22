@@ -33,9 +33,9 @@ public abstract class TestDataForCollections {
     private static final String PHONE_2_MASKED = "89*****18";
     private static final String PHONE_3 = "89058003318";
     private static final LocalDate DATE_1 = LocalDate.of(2021, 1, 2);
-    private static final LocalDate DATE_1_MASKED = LocalDate.of(1, 1, 2);
+    private static final LocalDate DATE_1_MASKED = LocalDate.of(0, 1, 2);
     private static final LocalDate DATE_2 = LocalDate.of(2001, 4, 3);
-    private static final LocalDate DATE_2_MASKED = LocalDate.of(1, 4, 3);
+    private static final LocalDate DATE_2_MASKED = LocalDate.of(0, 4, 3);
 
     protected CollectionDtoElement createCollectionElement1() {
         return CollectionDtoElement.builder()

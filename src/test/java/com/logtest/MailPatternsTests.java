@@ -13,17 +13,17 @@ public class MailPatternsTests {
 
     @Test
     void maskLocalDate_test() {
-        assertEquals(LocalDate.of(1, 10, 10),
+        assertEquals(LocalDate.of(0, 10, 10),
             MaskPatterns.maskLocalDate(LocalDate.of(2022, 10, 10)));
-        assertEquals(LocalDate.of(1, 10, 10),
-            MaskPatterns.maskLocalDate(LocalDate.of(1, 10, 10)));
+        assertEquals(LocalDate.of(0, 10, 10),
+            MaskPatterns.maskLocalDate(LocalDate.of(0, 10, 10)));
     }
 
     @Test
     void maskOffsetDateTime_test() {
-        assertEquals(OffsetDateTime.of(1, 4, 4, 4, 4, 4, 4, ZoneOffset.UTC),
+        assertEquals(OffsetDateTime.of(0, 4, 4, 4, 4, 4, 4, ZoneOffset.UTC),
             MaskPatterns.maskOffsetDateTime(OffsetDateTime.of(2023, 4, 4, 4, 4, 4, 4, ZoneOffset.UTC)));
-        assertEquals(OffsetDateTime.of(1, 4, 4, 4, 4, 4, 4, ZoneOffset.UTC),
+        assertEquals(OffsetDateTime.of(0, 4, 4, 4, 4, 4, 4, ZoneOffset.UTC),
             MaskPatterns.maskOffsetDateTime(OffsetDateTime.of(2023, 4, 4, 4, 4, 4, 4, ZoneOffset.UTC)));
     }
 

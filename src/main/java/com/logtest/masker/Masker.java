@@ -21,13 +21,20 @@ import org.apache.commons.lang3.builder.StandardToStringStyle;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.Temporal;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.IdentityHashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -49,60 +56,13 @@ public class Masker {
         CollectionProcessor.setCollectionMaskFunction(Masker::processRecursively);
         CollectionProcessor.setValueMaskFunction(ValueProcessor::processValue);
     }
-
     public static String maskDtoToString(Object dto) {
-        try {
-            Object maskedDto = mask(dto);
-
-            ToStringStyle style = new StandardToStringStyle() {
-                {
-                    this.setUseShortClassName(true);
-                    this.setUseIdentityHashCode(false);
-                    this.setContentStart("(");
-                    this.setContentEnd(")");
-                    this.setFieldSeparator(", ");
-                    this.setFieldSeparatorAtStart(false);
-                    this.setFieldSeparatorAtEnd(false);
-                }
-
-                @Override
-                public void append(StringBuffer buffer, String fieldName, Object value, Boolean fullDetail) {
-                    if (value instanceof LocalDate date) {
-                        super.append(buffer, fieldName,
-                            String.format("%02d.%02d.%04d",
-                                date.getDayOfMonth(),
-                                date.getMonthValue(),
-                                date.getYear()),
-                            fullDetail);
-                    } else if (value instanceof OffsetDateTime dateTime) {
-                        super.append(buffer, fieldName,
-                            String.format("%02d.%02d.%04d",
-                                dateTime.getDayOfMonth(),
-                                dateTime.getMonthValue(),
-                                dateTime.getYear()),
-                            fullDetail);
-                    } else {
-                        super.append(buffer, fieldName, value, fullDetail);
-                    }
-
-
-                   // super.append(buffer, fieldName, value, fullDetail);
-                }
-            };
-
-            String maskedDtoString = ReflectionToStringBuilder.toString(maskedDto, style);
-
-            return replaceYearsWithAsterisks(maskedDtoString);
-
-        } catch (Exception e) {
-            log.error("Error during DTO masking to string: {}", e.getMessage(), e);
-            return "ERROR_MASKING_DTO";
-        }
+        return replaceYearsWithAsterisks(String.valueOf(mask(dto)));
     }
 
     private static String replaceYearsWithAsterisks(String toStringResult) {
-        Pattern pattern = Pattern.compile("(\\d{2}\\.\\d{2}\\.)(0001|0002)");
-        return pattern.matcher(toStringResult).replaceAll("$1****");
+        Pattern pattern = Pattern.compile("(0000|0001)(-\\d{2}-\\d{2})");
+        return pattern.matcher(toStringResult).replaceAll("****$2");
     }
 
     public static <T> T mask(T dto) {

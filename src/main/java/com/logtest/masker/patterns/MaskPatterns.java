@@ -17,11 +17,11 @@ public class MaskPatterns {
     private static final String HYPHEN = "-";
 
     public static LocalDate maskLocalDate(LocalDate date) {
-        return date.withYear(1);
+        return date.withYear(0);
     }
 
     public static OffsetDateTime maskOffsetDateTime(OffsetDateTime dateTime) {
-        return dateTime.withYear(1);
+        return dateTime.withYear(0);
     }
     /**
      * Перед началом маскировки метод обрабатывает строку, убирая пробелы из начала и конца строки. Если на входе пустая строка, или строка из пробелов, то она вернется в неизменном виде.
