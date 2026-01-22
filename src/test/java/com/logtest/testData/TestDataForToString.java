@@ -1,10 +1,9 @@
 package com.logtest.testData;
 
-import com.logtest.dto.dtoForCollection.CollectionDtoElement;
 import com.logtest.dto.dtoToString.NestedDto;
-import com.logtest.dto.dtoToString.NestedDtoNoToStringOverride;
-import com.logtest.dto.dtoToString.UpperLevelDto;
-import com.logtest.dto.dtoToString.UpperLevelDtoNoToStringOverride;
+import com.logtest.dto.dtoToString.NestedDtoNoToString;
+import com.logtest.dto.dtoToString.Dto;
+import com.logtest.dto.dtoToString.DtoNoToString;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
@@ -19,13 +18,25 @@ public abstract class TestDataForToString {
 
     private static final String DATES_NOT_TO_BE_MASKED_TEXT = "=0001 :0001 112.0001 12.0001 0001-12 11.11.2001 2001-11-11 shall not to be masked";
     private static final LocalDate DATE_1 = LocalDate.of(2023, 5, 2);
-    private static final LocalDate DATE_1_MASKED = LocalDate.of(0, 5, 2);
     private static final LocalDate DATE_2 = LocalDate.of(2024, 4, 3);
-    private static final LocalDate DATE_2_MASKED = LocalDate.of(0, 4, 3);
     private static final OffsetDateTime DATE_TIME_1 = OffsetDateTime.of(0, 12, 31, 23, 59, 59, 60000, ZoneOffset.UTC);
-    private static final OffsetDateTime DATE_TIME_1_MASKED = OffsetDateTime.of(0, 4, 4, 4, 4, 4, 4, ZoneOffset.UTC);
     private static final OffsetDateTime DATE_TIME_2 = OffsetDateTime.of(2025, 4, 5, 6, 4, 4, 4, ZoneOffset.UTC);
-    private static final OffsetDateTime DATE_TIME_2_MASKED = OffsetDateTime.of(0, 4, 5, 6, 4, 4, 4, ZoneOffset.UTC);
+
+    public static final String DTO_NO_TO_STRING_MASKED = "DtoNoToString(localDate=****-05-02, " +
+        "offsetDateTime=****-12-31T23:59:59.000060Z, nestedDto=NestedDtoNoToString(localDate=****-05-02, " +
+        "dateTime=****-12-31T23:59:59.000060Z), listWithDtos=[NestedDtoNoToString(localDate=****-05-02, " +
+        "dateTime=****-12-31T23:59:59.000060Z), NestedDtoNoToString(localDate=****-04-03, " +
+        "dateTime=****-04-05T06:04:04.000000004Z)], mapWithDtos={key1=NestedDtoNoToString(localDate=****-05-02, " +
+        "dateTime=****-12-31T23:59:59.000060Z), key2=NestedDtoNoToString(localDate=****-04-03, " +
+        "dateTime=****-04-05T06:04:04.000000004Z)}, setWithDtos=[NestedDtoNoToString(localDate=****-04-03, " +
+        "dateTime=****-04-05T06:04:04.000000004Z), NestedDtoNoToString(localDate=****-05-02, " +
+        "dateTime=****-12-31T23:59:59.000060Z)], arrayWithDtos=[NestedDtoNoToString(localDate=****-05-02, " +
+        "dateTime=****-12-31T23:59:59.000060Z), NestedDtoNoToString(localDate=****-04-03, " +
+        "dateTime=****-04-05T06:04:04.000000004Z)], listWithLocalDates=[****-05-02, ****-04-03], " +
+        "setWithLocalDates=[****-04-03, ****-05-02], mapWithLocalDates={key1=****-05-02, key2=****-04-03}, " +
+        "listWithOffsetDateTime=[****-12-31T23:59:59.000060Z, ****-04-05T06:04:04.000000004Z], " +
+        "setWithOffsetDateTime=[****-12-31T23:59:59.000060Z, ****-04-05T06:04:04.000000004Z], " +
+        "mapWithOffsetDateTime={key1=****-12-31T23:59:59.000060Z, key2=****-04-05T06:04:04.000000004Z})";
 
 
     protected NestedDto createNestedDto1() {
@@ -42,8 +53,8 @@ public abstract class TestDataForToString {
             .build();
     }
 
-    protected UpperLevelDto createUpperLevelDto() {
-        return UpperLevelDto.builder()
+    protected Dto createDto() {
+        return Dto.builder()
             .localDate(DATE_1)
             .offsetDateTime(DATE_TIME_1)
             .nestedDto(createNestedDto1())
@@ -69,26 +80,26 @@ public abstract class TestDataForToString {
             .build();
     }
 
-    protected NestedDtoNoToStringOverride createNestedDtoNoToStringOverride1() {
-        return NestedDtoNoToStringOverride.builder()
+    protected NestedDtoNoToString createNestedDtoNoToStringOverride1() {
+        return NestedDtoNoToString.builder()
             .localDate(DATE_1)
             .dateTime(DATE_TIME_1)
             .build();
     }
 
-    protected NestedDtoNoToStringOverride createNestedDtoNoToStringOverride2() {
-        return NestedDtoNoToStringOverride.builder()
+    protected NestedDtoNoToString createNestedDtoNoToStringOverride2() {
+        return NestedDtoNoToString.builder()
             .localDate(DATE_2)
             .dateTime(DATE_TIME_2)
             .build();
     }
 
-    protected UpperLevelDtoNoToStringOverride createUpperLevelDtoNoToStringOverride() {
-        return UpperLevelDtoNoToStringOverride.builder()
+    protected DtoNoToString createDtoNoToString() {
+        return DtoNoToString.builder()
             .localDate(DATE_1)
             .offsetDateTime(DATE_TIME_1)
             .nestedDto(createNestedDtoNoToStringOverride1())
-            .arrayWithDtos(new NestedDtoNoToStringOverride[]{createNestedDtoNoToStringOverride1(), createNestedDtoNoToStringOverride2()})
+            .arrayWithDtos(new NestedDtoNoToString[]{createNestedDtoNoToStringOverride1(), createNestedDtoNoToStringOverride2()})
             .listWithDtos(new ArrayList<>(List.of(createNestedDtoNoToStringOverride1(), createNestedDtoNoToStringOverride2())))
             .setWithDtos(new HashSet<>(Set.of(createNestedDtoNoToStringOverride1(), createNestedDtoNoToStringOverride2())))
             .mapWithDtos(new HashMap<>() {{

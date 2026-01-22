@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import static com.logtest.masker.processors.DtoToStringProcessor.convertDtoToString;
+import static com.logtest.masker.processors.DtoToStringProcessor.convertDtoToStringAndMaskDates;
 import static com.logtest.masker.processors.DtoToStringProcessor.maskDates;
 import static org.springframework.util.ReflectionUtils.doWithFields;
 import static org.springframework.util.ReflectionUtils.findField;
@@ -37,7 +37,7 @@ public class Masker {
     }
 
     public static <T> String maskToStringWithOverride(T dto) {
-        return maskDates(convertDtoToString(mask(dto)));
+        return maskDates(convertDtoToStringAndMaskDates(mask(dto)));
     }
 
     public static <T> T mask(T dto) {

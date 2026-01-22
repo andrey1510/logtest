@@ -6,18 +6,16 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class MaskerTestsToString extends TestDataForToString {
-
+public class MaskerMaskToStringTests extends TestDataForToString {
 
     @Test
     void maskToString_test() {
-        assertEquals(createUpperLevelDto(), Masker.maskToString(createUpperLevelDto()));
+        assertEquals(createDto(), Masker.maskToString(createDto()));
     }
 
     @Test
     void maskToString_testNoToStringOverride() {
-        assertEquals(createUpperLevelDtoNoToStringOverride(),
-            Masker.maskToStringWithOverride(createUpperLevelDtoNoToStringOverride()));
+        assertEquals(DTO_NO_TO_STRING_MASKED, Masker.maskToStringWithOverride(createDtoNoToString()));
     }
 
 }

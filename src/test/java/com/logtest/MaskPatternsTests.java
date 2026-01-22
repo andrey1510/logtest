@@ -9,7 +9,7 @@ import java.time.ZoneOffset;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class MailPatternsTests {
+public class MaskPatternsTests {
 
     @Test
     void maskLocalDate_test() {

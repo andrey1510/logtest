@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Slf4j
-public class MaskerTestsCollectionsOnly extends TestDataForCollections {
+public class MaskerCollectionsTests extends TestDataForCollections {
 
     @Test
     void mask_testArrayList() {

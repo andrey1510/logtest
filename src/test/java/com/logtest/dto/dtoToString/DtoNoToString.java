@@ -12,7 +12,6 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -24,7 +23,7 @@ import java.util.Set;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class UpperLevelDtoNoToStringOverride {
+public class DtoNoToString {
 
     @MaskedProperty(type = MaskPatternType.LOCAL_DATE)
     private LocalDate localDate;
@@ -32,15 +31,15 @@ public class UpperLevelDtoNoToStringOverride {
     @MaskedProperty(type = MaskPatternType.OFFSET_DATE_TIME)
     private OffsetDateTime offsetDateTime;
 
-    private NestedDtoNoToStringOverride nestedDto;
+    private NestedDtoNoToString nestedDto;
 
-    private List<NestedDtoNoToStringOverride> listWithDtos;
+    private List<NestedDtoNoToString> listWithDtos;
 
-    private Map<String, NestedDtoNoToStringOverride> mapWithDtos;
+    private Map<String, NestedDtoNoToString> mapWithDtos;
 
-    private Set<NestedDtoNoToStringOverride> setWithDtos;
+    private Set<NestedDtoNoToString> setWithDtos;
 
-    private NestedDtoNoToStringOverride[] arrayWithDtos;
+    private NestedDtoNoToString[] arrayWithDtos;
 
     @MaskedProperty(type = MaskPatternType.LOCAL_DATE)
     private List<LocalDate> listWithLocalDates;

@@ -1,6 +1,5 @@
 package com.logtest.dto.dtoToString;
 
-import com.logtest.dto.dtoForCollection.CollectionDtoElement;
 import com.logtest.masker.annotations.Masked;
 import com.logtest.masker.annotations.MaskedProperty;
 import com.logtest.masker.patterns.MaskPatternType;
@@ -20,7 +19,7 @@ import java.util.Set;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UpperLevelDto {
+public class Dto {
 
     @MaskedProperty(type = MaskPatternType.LOCAL_DATE)
     private LocalDate localDate;

@@ -12,7 +12,6 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
 
 @Masked
 @Builder
@@ -21,7 +20,7 @@ import java.time.format.DateTimeFormatter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class NestedDtoNoToStringOverride {
+public class NestedDtoNoToString {
 
     @MaskedProperty(type = MaskPatternType.LOCAL_DATE)
     private LocalDate localDate;
