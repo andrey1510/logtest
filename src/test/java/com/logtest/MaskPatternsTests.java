@@ -1,8 +1,10 @@
 package com.logtest;
 
 import com.logtest.masker.patterns.MaskPatterns;
+import com.logtest.masker.processors.DtoToStringProcessor;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -151,10 +153,10 @@ public class MaskPatternsTests {
     }
 
     @Test
-    void maskBalance_test() {
-        assertEquals("***", MaskPatterns.maskBalance("23131212"));
-        assertEquals("   ", MaskPatterns.maskBalance("   "));
-        assertEquals("", MaskPatterns.maskBalance(""));
+    void maskBalance_Str_test() {
+        assertEquals("***", MaskPatterns.maskBalanceString("23131212"));
+        assertEquals("   ", MaskPatterns.maskBalanceString("   "));
+        assertEquals("", MaskPatterns.maskBalanceString(""));
     }
 
     @Test
@@ -300,11 +302,45 @@ public class MaskPatternsTests {
     }
 
     @Test
+    void maskDatesAndNumbers_test() {
+
+        assertEquals("text1111111111text", DtoToStringProcessor.maskDatesAndNumbers("text1111111111text"));
+        assertEquals("111111111111", DtoToStringProcessor.maskDatesAndNumbers("111111111111"));
+        assertEquals("integerNumber=*** text", DtoToStringProcessor.maskDatesAndNumbers("integerNumber=1111111111 text"));
+        assertEquals("integerNumber=*** text", DtoToStringProcessor.maskDatesAndNumbers("integerNumber=111111.11 text"));
+        assertEquals("text111111.11text", DtoToStringProcessor.maskDatesAndNumbers("text111111.11text"));
+        assertEquals("text ****-23-65 text", DtoToStringProcessor.maskDatesAndNumbers("text 0000-23-65 text"));
+        assertEquals("date=****-23-65 text", DtoToStringProcessor.maskDatesAndNumbers("date=0000-23-65 text"));
+        assertEquals("date=0000.23.65 text", DtoToStringProcessor.maskDatesAndNumbers("date=0000.23.65 text"));
+        assertEquals("text 2023-23-65 text", DtoToStringProcessor.maskDatesAndNumbers("text 2023-23-65 text"));
+
+    }
+
+    @Test
+    void maskBalance_test() {
+
+        assertEquals(1111111111L, MaskPatterns.maskBalance(4353L));
+        assertEquals(1111111111L, MaskPatterns.maskBalance(0L));
+        assertEquals(1111111111L, MaskPatterns.maskBalance(-343L));
+        assertEquals(1111111111, MaskPatterns.maskBalance(4353));
+        assertEquals(1111111111, MaskPatterns.maskBalance(0));
+        assertEquals(1111111111, MaskPatterns.maskBalance(-343));
+        assertEquals(111111.11, MaskPatterns.maskBalance(4353.21));
+        assertEquals(111111.11, MaskPatterns.maskBalance(0.00));
+        assertEquals(111111.11, MaskPatterns.maskBalance(-343.75));
+        assertEquals(new BigDecimal("1111111111"), MaskPatterns.maskBalance(new BigDecimal(43322L)));
+        assertEquals(new BigDecimal("1111111111"), MaskPatterns.maskBalance(new BigDecimal("329482833.34212")));
+        assertEquals(new BigDecimal("1111111111"), MaskPatterns.maskBalance(new BigDecimal("-329482833.312")));
+
+    }
+
+    @Test
     void maskLongText_test() {
         assertEquals("Вася Пупкин, паспорт 7212 347212, написал*****ь очень  очень очень очень длинный текст.",
             MaskPatterns.maskTextField("Вася Пупкин, паспорт 7212 347212, написал очень очень очень  очень " +
                 "очень очень  очень очень очень  очень очень очень  очень очень очень  очень очень очень очень  " +
                 "очень очень  очень очень очень длинный текст."));
     }
+
 
 }

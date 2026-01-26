@@ -118,7 +118,7 @@ public class CollectionProcessor {
     private static Object processAnnotatedCollectionElement(Object item, MaskPatternType type) {
         if (item == null) {
             return null;
-        } else if (item instanceof String || item instanceof Temporal) {
+        } else if (item instanceof String || item instanceof Temporal || item instanceof Number) {
             return valueMaskFunction != null ? valueMaskFunction.apply(type, item) : item;
         } else {
             return item;

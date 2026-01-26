@@ -15,10 +15,11 @@ public class ValueProcessor {
 
     private static final Map<MaskPatternType, Function<String, String>> STRING_MASKERS;
     private static final Map<MaskPatternType, Function<Temporal, Temporal>> TEMPORAL_MASKERS;
+    private static final Map<MaskPatternType, Function<Number, Number>> NUMERICAL_MASKERS;
 
     static {
         STRING_MASKERS = new EnumMap<>(Map.ofEntries(
-            entry(MaskPatternType.BALANCE, MaskPatterns::maskBalance),
+            entry(MaskPatternType.BALANCE_STRING, MaskPatterns::maskBalanceString),
             entry(MaskPatternType.CONFIDENTIAL_NUMBER, MaskPatterns::maskConfidentialNumber),
             entry(MaskPatternType.EMAIL, MaskPatterns::maskEmail),
             entry(MaskPatternType.FULL_ADDRESS, MaskPatterns::maskFullAddress),
@@ -52,6 +53,10 @@ public class ValueProcessor {
                     ? MaskPatterns.maskOffsetDateTime(dateTime)
                     : temporal)
         ));
+
+        NUMERICAL_MASKERS = new EnumMap<>(Map.ofEntries(
+            entry(MaskPatternType.BALANCE, MaskPatterns::maskBalance)
+        ));
     }
 
     public static Object processValue(MaskPatternType type, Object value) {
@@ -63,6 +68,10 @@ public class ValueProcessor {
         } else if (value instanceof Temporal temp) {
             Function<Temporal, Temporal> masker = TEMPORAL_MASKERS.get(type);
             if (masker != null) return masker.apply(temp);
+            return value;
+        } else if (value instanceof Number numerical) {
+            Function<Number, Number> masker = NUMERICAL_MASKERS.get(type);
+            if (masker != null) return masker.apply(numerical);
             return value;
         } else {
             return value;

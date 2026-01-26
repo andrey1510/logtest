@@ -14,7 +14,6 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -22,9 +21,10 @@ public class DtoToStringProcessor {
 
     private static final String FOUR_ASTERISKS = "****";
 
-    public static String maskDates(String toStringResult) {
-        Pattern pattern = Pattern.compile("(0000)(-\\d{2}-\\d{2})");
-        return pattern.matcher(toStringResult).replaceAll("****$2");
+    public static String maskDatesAndNumbers(String toStringResult) {
+        return toStringResult
+            .replaceAll("0000(-\\d{2}-\\d{2})", "****$1")
+            .replaceAll("\\b1111111111\\b|\\b111111\\.11\\b", "***");
     }
 
     public static String convertDtoToStringAndMaskDates(Object dto) {

@@ -2,6 +2,7 @@ package com.logtest.masker.patterns;
 
 public enum MaskPatternType {
     BALANCE,
+    BALANCE_STRING,
     CONFIDENTIAL_NUMBER,
     EMAIL,
     FULL_ADDRESS,

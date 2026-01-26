@@ -15,7 +15,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import static com.logtest.masker.processors.DtoToStringProcessor.convertDtoToStringAndMaskDates;
-import static com.logtest.masker.processors.DtoToStringProcessor.maskDates;
+import static com.logtest.masker.processors.DtoToStringProcessor.maskDatesAndNumbers;
 import static org.springframework.util.ReflectionUtils.doWithFields;
 import static org.springframework.util.ReflectionUtils.findField;
 import static org.springframework.util.ReflectionUtils.getField;
@@ -33,7 +33,7 @@ public class Masker {
     }
 
     public static <T> String maskToString(T dto) {
-        return maskDates(String.valueOf(mask(dto)));
+        return maskDatesAndNumbers(String.valueOf(mask(dto)));
     }
 
     public static <T> String maskToStringWithOverride(T dto) {
@@ -94,7 +94,7 @@ public class Masker {
 
         if (value == null) {
             return null;
-        } else if ((value instanceof Temporal || value instanceof String) && maskedProperty != null) {
+        } else if ((value instanceof Temporal || value instanceof String || value instanceof Number) && maskedProperty != null) {
             return ValueProcessor.processValue(maskedProperty.type(), value);
         } else if (value instanceof List) {
             return CollectionProcessor.processList((List<?>) value, field, processed);

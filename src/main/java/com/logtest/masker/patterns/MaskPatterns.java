@@ -1,5 +1,6 @@
 package com.logtest.masker.patterns;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 
@@ -226,12 +227,30 @@ public class MaskPatterns {
      * Перед началом маскировки метод обрабатывает строку, убирая пробелы из начала и конца строки. Если на входе пустая строка, или строка из пробелов, то она вернется в неизменном виде.
      * Если в строке имеются символы помимо пробелов, то метод вернет "***".
      */
-    public static String maskBalance(String source) {
+    public static String maskBalanceString(String source) {
         String trimmed = source.trim();
         return switch (trimmed.length()) {
             case 0 -> source;
             default -> THREE_ASTERISKS;
         };
+    }
+
+    /**
+     * Метод обрабатывает заменит значение типов BigDecimal, Long, Double, Integer на 1111111111.
+     * Для других типов метод вернет исходное значение.
+     */
+    public static Number maskBalance(Number source) {
+        if (source instanceof BigDecimal) {
+            return new BigDecimal("1111111111");
+        } else if (source instanceof Long) {
+            return 1111111111L;
+        } else if (source instanceof Double) {
+            return 111111.11;
+        } else if (source instanceof Integer) {
+            return 1111111111;
+        } else {
+            return source;
+        }
     }
 
     /**
