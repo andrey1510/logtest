@@ -19,4 +19,10 @@ public class MaskerNumericalTests extends TestDataForNumerical {
         assertEquals(DTO_NUMERICAL_MASKED, Masker.maskToString(createDtoNumerical()));
     }
 
+    @Test
+    void maskToStringWithOverride_testNumerical() {
+        assertEquals(DTO_NUMERICAL_MASKED, Masker.maskToStringWithOverride(createDtoNumerical()));
+        assertEquals(DTO_NUMERICAL_NO_TOSTRING_MASKED, Masker.maskToStringWithOverride(createDtoNumericalNoToString()));
+    }
+
 }

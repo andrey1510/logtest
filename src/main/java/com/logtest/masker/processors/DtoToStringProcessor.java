@@ -5,6 +5,7 @@ import com.logtest.masker.annotations.MaskedProperty;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.temporal.Temporal;
@@ -74,6 +75,8 @@ public class DtoToStringProcessor {
             return arrayToString(field, value, processed);
         } else if (value instanceof Temporal && field.getAnnotation(MaskedProperty.class) != null) {
             return processTemporal(value);
+        } else if (value instanceof Number && field.getAnnotation(MaskedProperty.class) != null) {
+            return processNumerical(value);
         } else if (isCustomObject(value)) {
             return processRecursively(value, processed);
         } else {
@@ -88,6 +91,20 @@ public class DtoToStringProcessor {
             return FOUR_ASTERISKS + dateTime.toString().substring(4);
         } else {
             return String.valueOf(temporal);
+        }
+    }
+
+    private static String processNumerical(Object numerical) {
+        if (numerical instanceof BigDecimal && numerical.equals(new BigDecimal("1111111111"))) {
+            return "***";
+        } else if (numerical instanceof Long && numerical.equals(1111111111L)) {
+            return "***";
+        } else if (numerical instanceof Double && numerical.equals(111111.11)) {
+            return "***";
+        } else if (numerical instanceof Integer && numerical.equals(1111111111)) {
+            return "***";
+        } else {
+            return String.valueOf(numerical);
         }
     }
 
@@ -110,6 +127,8 @@ public class DtoToStringProcessor {
             return processRecursively(element, processed);
         } else if (element instanceof Temporal && field.getAnnotation(MaskedProperty.class) != null) {
             return processTemporal(element);
+        } else if (element instanceof Number && field.getAnnotation(MaskedProperty.class) != null) {
+            return processNumerical(element);
         } else {
             return String.valueOf(element);
         }

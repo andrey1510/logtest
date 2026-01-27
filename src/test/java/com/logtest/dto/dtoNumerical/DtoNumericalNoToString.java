@@ -6,7 +6,10 @@ import com.logtest.masker.patterns.MaskPatternType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -14,7 +17,9 @@ import java.util.Map;
 
 @Masked
 @Builder
-@Data
+@EqualsAndHashCode
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class DtoNumericalNoToString {

@@ -1,6 +1,7 @@
 package com.logtest.testData;
 
 import com.logtest.dto.dtoNumerical.DtoNumerical;
+import com.logtest.dto.dtoNumerical.DtoNumericalNoToString;
 import com.logtest.dto.dtoNumerical.WrongNumberTypeDto;
 
 import java.math.BigDecimal;
@@ -21,6 +22,8 @@ public class TestDataForNumerical {
     private static final Short SHORT_NUMBER = 8888;
 
     public static final String DTO_NUMERICAL_MASKED = "DtoNumerical(noMaskNumber=666, integerNumber=***, longNumber=***, doubleNumber=***, BigDecimalNumber=***, integersList=[***], integersMap={1=***}, dtoNumerical=DtoNumerical(noMaskNumber=666, integerNumber=null, longNumber=***, doubleNumber=***, BigDecimalNumber=null, integersList=null, integersMap=null, dtoNumerical=null, dtos=null), dtos=[DtoNumerical(noMaskNumber=666, integerNumber=null, longNumber=***, doubleNumber=***, BigDecimalNumber=null, integersList=null, integersMap=null, dtoNumerical=null, dtos=null)])";
+    public static final String DTO_NUMERICAL_NO_TOSTRING_MASKED = "DtoNumericalNoToString(noMaskNumber=666, integerNumber=***, longNumber=***, doubleNumber=***, BigDecimalNumber=***, integersList=[***], integersMap={1=***}, dtoNumerical=DtoNumericalNoToString(noMaskNumber=666, integerNumber=null, longNumber=***, doubleNumber=***, BigDecimalNumber=null, integersList=null, integersMap=null, dtoNumerical=null, dtos=null), dtos=[DtoNumericalNoToString(noMaskNumber=666, integerNumber=null, longNumber=***, doubleNumber=***, BigDecimalNumber=null, integersList=null, integersMap=null, dtoNumerical=null, dtos=null)])";
+
 
     protected DtoNumerical createDtoNumericalNested() {
         return DtoNumerical.builder()
@@ -77,6 +80,32 @@ public class TestDataForNumerical {
     protected WrongNumberTypeDto createWrongNumberTypeDto() {
         return WrongNumberTypeDto.builder()
             .shortNumber(SHORT_NUMBER)
+            .build();
+    }
+
+    protected DtoNumericalNoToString createDtoNumericalNoToStringNested() {
+        return DtoNumericalNoToString.builder()
+            .noMaskNumber(666)
+            .doubleNumber(DOUBLE_NUMBER)
+            .integerNumber(null)
+            .longNumber(LONG_NUMBER)
+            .BigDecimalNumber(null)
+            .build();
+    }
+
+    protected DtoNumericalNoToString createDtoNumericalNoToString() {
+        return DtoNumericalNoToString.builder()
+            .noMaskNumber(666)
+            .doubleNumber(DOUBLE_NUMBER)
+            .integerNumber(INTEGER_NUMBER)
+            .longNumber(LONG_NUMBER)
+            .dtos(new ArrayList<>(List.of(createDtoNumericalNoToStringNested())))
+            .BigDecimalNumber(BIG_DECIMAL_NUMBER)
+            .dtoNumerical(createDtoNumericalNoToStringNested())
+            .integersList(new ArrayList<>(List.of(INTEGER_NUMBER)))
+            .integersMap(new HashMap<>() {{
+                put(1, INTEGER_NUMBER);
+            }})
             .build();
     }
 
