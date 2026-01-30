@@ -141,13 +141,7 @@ public class DtoToStringProcessor {
     }
 
     private static boolean isCustomObject(Object obj) {
-        return !obj.getClass().isPrimitive() &&
-            !obj.getClass().isEnum() &&
-            !(obj instanceof String) &&
-            !(obj instanceof Number) &&
-            !(obj instanceof Boolean) &&
-            !(obj instanceof Character) &&
-            !(obj instanceof Class) &&
+        return !obj.getClass().isEnum() &&
             !obj.getClass().getName().startsWith("java.") &&
             !obj.getClass().getName().startsWith("javax.");
     }

@@ -342,5 +342,4 @@ public class MaskPatternsTests {
                 "очень очень  очень очень очень длинный текст."));
     }
 
-
 }
