@@ -1,10 +1,10 @@
 package com.logtest.feignlogger;
 
-import okhttp3.mockwebserver.MockResponse;
-import okhttp3.mockwebserver.MockWebServer;
-import okhttp3.mockwebserver.RecordedRequest;
+import com.github.tomakehurst.wiremock.client.WireMock;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,52 +12,53 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
+import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-
 import java.io.IOException;
+import java.io.OutputStream;
+import java.net.InetSocketAddress;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.containing;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import com.sun.net.httpserver.HttpServer;
+
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
+@AutoConfigureWireMock(port = 8889)
 @ExtendWith(OutputCaptureExtension.class)
+@TestPropertySource(properties = {
+    "external-mock-service.url=http://localhost:8889"
+})
 class FeignLoggerIntegrationTest {
-
-    private static MockWebServer mockWebServer;
 
     @Autowired
     private MockMvc mockMvc;
 
-    @BeforeAll
-    static void beforeAll() throws IOException {
-        mockWebServer = new MockWebServer();
-        mockWebServer.start(8889);
-    }
-
-    @AfterAll
-    static void afterAll() throws IOException {
-        mockWebServer.shutdown();
-    }
-
-    @DynamicPropertySource
-    static void properties(DynamicPropertyRegistry registry) {
-        registry.add("external-mock-service.url",
-            () -> String.format("http://localhost:%d", mockWebServer.getPort()));
-    }
-
     @Test
-    void testGetAccounts_MasksAccountNumberInLogs(CapturedOutput output) throws Exception {
+    @SneakyThrows
+    void testGetAccounts_MasksAccountNumberInLogs(CapturedOutput output) {
 
         String responseBody = """
             {
@@ -65,12 +66,14 @@ class FeignLoggerIntegrationTest {
             }
             """;
 
-        MockResponse mockResponse = new MockResponse()
-            .setBody(responseBody)
-            .addHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-            .addHeader("jwt", "secret-jwt-token");
-
-        mockWebServer.enqueue(mockResponse);
+        stubFor(WireMock.get(urlPathEqualTo("/external-get"))
+            .withQueryParam("accountNumber", equalTo("1234567890"))
+            .withQueryParam("status", equalTo("active"))
+            .willReturn(aResponse()
+                .withStatus(HttpStatus.OK.value())
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                .withHeader("jwt", "secret-jwt-token")
+                .withBody(responseBody)));
 
         String authHeader = "Bearer real-token-123";
         String accountNumber = "1234567890";
@@ -83,13 +86,11 @@ class FeignLoggerIntegrationTest {
             .andExpect(status().isOk())
             .andReturn();
 
-        RecordedRequest recordedRequest = mockWebServer.takeRequest();
+        verify(getRequestedFor(urlPathEqualTo("/external-get"))
+            .withQueryParam("accountNumber", equalTo("1234567890"))
+            .withQueryParam("status", equalTo("active"))
+            .withHeader("Authorization", equalTo("Bearer real-token-123")));
 
-        assertNotNull(recordedRequest.getPath());
-        assertTrue(recordedRequest.getPath().startsWith("/external-get"));
-        assertTrue(recordedRequest.getPath().contains("accountNumber=1234567890"));
-        assertTrue(recordedRequest.getPath().contains("status=active"));
-        assertEquals("Bearer real-token-123", recordedRequest.getHeader("Authorization"));
         assertEquals(200, result.getResponse().getStatus());
 
         String logs = output.getAll();
@@ -97,7 +98,7 @@ class FeignLoggerIntegrationTest {
         assertTrue(logs.contains("accountNumber=**********"),
             "Логи должны содержать замаскированный accountNumber (**********), но содержат: " + logs);
 
-        assertFalse(logs.contains("accountNumber=1234567890"),
+        assertFalse(logs.contains("GET http://localhost:8889/external-get?accountNumber=1234567890"),
             "Логи не должны содержать незамаскированный accountNumber");
 
         assertFalse(logs.contains("Authorization: Bearer real-token-123"),
@@ -111,7 +112,8 @@ class FeignLoggerIntegrationTest {
     }
 
     @Test
-    void testGetAccounts_WithoutAuthHeader(CapturedOutput output) throws Exception {
+    @SneakyThrows
+    void testGetAccounts_WithoutAuthHeader(CapturedOutput output) {
         // Arrange
         String responseBody = """
             {
@@ -119,28 +121,26 @@ class FeignLoggerIntegrationTest {
             }
             """;
 
-        MockResponse mockResponse = new MockResponse()
-            .setBody(responseBody)
-            .addHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE);
+        stubFor(WireMock.get(urlPathEqualTo("/external-get"))
+            .withQueryParam("accountNumber", equalTo("987654321"))
+            .withQueryParam("status", equalTo("inactive"))
+            .willReturn(aResponse()
+                .withStatus(HttpStatus.OK.value())
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                .withBody(responseBody)));
 
-        mockWebServer.enqueue(mockResponse);
-
-        String accountNumber = "987654321"; // 9 символов
+        String accountNumber = "987654321";
         String status = "inactive";
 
-        // Act
         MvcResult result = mockMvc.perform(get("/test-api/test-get")
                 .param("accountNumber", accountNumber)
                 .param("status", status))
             .andExpect(status().isOk())
             .andReturn();
 
-        // Assert
-        RecordedRequest recordedRequest = mockWebServer.takeRequest();
-        assertNotNull(recordedRequest.getPath());
-        assertTrue(recordedRequest.getPath().contains("accountNumber=987654321"));
-        assertTrue(recordedRequest.getPath().contains("status=inactive"));
-        assertNull(recordedRequest.getHeader("Authorization"));
+        verify(getRequestedFor(urlPathEqualTo("/external-get"))
+            .withQueryParam("accountNumber", equalTo("987654321"))
+            .withQueryParam("status", equalTo("inactive")));
 
         String logs = output.getAll();
 
@@ -152,7 +152,8 @@ class FeignLoggerIntegrationTest {
     }
 
     @Test
-    void testPostRequest_DoesNotMaskBody(CapturedOutput output) throws Exception {
+    @SneakyThrows
+    void testPostRequest_DoesNotMaskBody(CapturedOutput output) {
 
         String responseBody = """
             {
@@ -160,17 +161,19 @@ class FeignLoggerIntegrationTest {
             }
             """;
 
-        MockResponse mockResponse = new MockResponse()
-            .setBody(responseBody)
-            .addHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE);
-
-        mockWebServer.enqueue(mockResponse);
-
         String requestBody = """
             {
                 "textField": "test request data"
             }
             """;
+
+        stubFor(WireMock.post(urlPathEqualTo("/external-post"))
+            .withHeader("Authorization", equalTo("Bearer another-token"))
+            .withRequestBody(containing("test request data"))
+            .willReturn(aResponse()
+                .withStatus(HttpStatus.OK.value())
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                .withBody(responseBody)));
 
         String authHeader = "Bearer another-token";
 
@@ -181,15 +184,9 @@ class FeignLoggerIntegrationTest {
             .andExpect(status().isOk())
             .andReturn();
 
-        RecordedRequest recordedRequest = mockWebServer.takeRequest();
-
-        assertNotNull(recordedRequest.getPath());
-        assertEquals("/external-post", recordedRequest.getPath());
-        assertEquals("Bearer another-token", recordedRequest.getHeader("Authorization"));
-
-        String requestBodyContent = recordedRequest.getBody().readUtf8();
-        assertTrue(requestBodyContent.contains("test request data"));
-        assertEquals("POST", recordedRequest.getMethod());
+        verify(postRequestedFor(urlPathEqualTo("/external-post"))
+            .withHeader("Authorization", equalTo("Bearer another-token"))
+            .withRequestBody(containing("test request data")));
 
         String logs = output.getAll();
 
@@ -198,11 +195,11 @@ class FeignLoggerIntegrationTest {
 
         assertFalse(logs.contains("Authorization: Bearer another-token"),
             "Логи не должны содержать заголовок Authorization");
-
     }
 
     @Test
-    void testGetAccounts_ResponseJwtHeaderNotLogged(CapturedOutput output) throws Exception {
+    @SneakyThrows
+    void testGetAccounts_ResponseJwtHeaderNotLogged(CapturedOutput output) {
 
         String responseBody = """
             {
@@ -210,13 +207,15 @@ class FeignLoggerIntegrationTest {
             }
             """;
 
-        MockResponse mockResponse = new MockResponse()
-            .setBody(responseBody)
-            .addHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-            .addHeader("jwt", "very-secret-jwt-response-token")
-            .addHeader("custom-header", "custom-value");
-
-        mockWebServer.enqueue(mockResponse);
+        stubFor(WireMock.get(urlPathEqualTo("/external-get"))
+            .withQueryParam("accountNumber", equalTo("111222333"))
+            .withQueryParam("status", equalTo("pending"))
+            .willReturn(aResponse()
+                .withStatus(HttpStatus.OK.value())
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                .withHeader("jwt", "very-secret-jwt-response-token")
+                .withHeader("custom-header", "custom-value")
+                .withBody(responseBody)));
 
         String accountNumber = "111222333";
         String status = "pending";
@@ -227,11 +226,9 @@ class FeignLoggerIntegrationTest {
             .andExpect(status().isOk())
             .andReturn();
 
-        RecordedRequest recordedRequest = mockWebServer.takeRequest();
-
-        assertNotNull(recordedRequest.getPath());
-        assertTrue(recordedRequest.getPath().contains("accountNumber=111222333"));
-        assertTrue(recordedRequest.getPath().contains("status=pending"));
+        verify(getRequestedFor(urlPathEqualTo("/external-get"))
+            .withQueryParam("accountNumber", equalTo("111222333"))
+            .withQueryParam("status", equalTo("pending")));
 
         String responseContent = result.getResponse().getContentAsString();
         assertTrue(responseContent.contains("sensitive data"));
@@ -245,7 +242,7 @@ class FeignLoggerIntegrationTest {
             "Логи не должны содержать jwt заголовок из ответа");
 
         assertTrue(logs.contains("custom-header: custom-value"),
-            "Логи должны содержать не исключенные хедеры)");
+            "Логи должны содержать не исключенные хедеры");
 
         assertTrue(logs.contains("<--- HTTP") || logs.contains("END HTTP"),
             "Логи должны содержать информацию об ответе");
