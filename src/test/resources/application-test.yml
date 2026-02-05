@@ -5,24 +5,14 @@ spring:
         config:
           default:
             logger-level: FULL
-          test-external-service:
-            logger-level: FULL
-  application:
-    name: logtest-test
-
-server:
-  port: 0
-
-service-name:
-  feign-logger:
-    should-not-log-request-headers: Authorization, jwt
-    should-not-log-response-headers: jwt
-
-test-external-service:
-  url: http://localhost:${server.port}
 
 logging:
   level:
     com.logtest.feignlogger: DEBUG
     feign.Logger: DEBUG
     org.springframework.cloud.openfeign: DEBUG
+
+service-name:
+  feign-logger:
+    should-not-log-request-headers: Authorization, jwt
+    should-not-log-response-headers: jwt

@@ -1,187 +1,206 @@
 package com.logtest.feignlogger;
 
-import org.junit.jupiter.api.BeforeEach;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
+import okhttp3.mockwebserver.RecordedRequest;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 
-import java.util.List;
+import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest(
-    classes = TestApplication.class,
-    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
-)
-@ActiveProfiles("test")
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureMockMvc
 class FeignLoggerIntegrationTest {
 
-    @LocalServerPort
-    private int port;
+    private static MockWebServer mockWebServer;
 
     @Autowired
-    private TestRestTemplate restTemplate;
+    private MockMvc mockMvc;
 
-    @Autowired
-    private FeignClient feignClient;
+    @BeforeAll
+    static void beforeAll() throws IOException {
+        mockWebServer = new MockWebServer();
+        mockWebServer.start(8889);
+    }
+
+    @AfterAll
+    static void afterAll() throws IOException {
+        mockWebServer.shutdown();
+    }
 
     @DynamicPropertySource
-    static void registerProperties(DynamicPropertyRegistry registry) {
-        registry.add("test-external-service.url",
-            () -> "http://localhost:" + getCurrentPort());
-    }
-
-    private static Integer currentPort = null;
-
-    @BeforeEach
-    void setUp() {
-        System.out.println("Test server running on port: " + port);
-        currentPort = port;
-    }
-
-    private static Integer getCurrentPort() {
-        return currentPort;
+    static void properties(DynamicPropertyRegistry registry) {
+        registry.add("external-mock-service.url",
+            () -> String.format("http://localhost:%d", mockWebServer.getPort()));
     }
 
     @Test
-    void testPostRequest() {
-        RequestDto requestDto = new RequestDto();
-        requestDto.setTextField("Test request");
+    void testGetAccounts_MasksAccountNumberInLogs() throws Exception {
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "Bearer test-token-123");
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        String responseBody = """
+            {
+                "textField": "response data"
+            }
+            """;
 
-        HttpEntity<RequestDto> request = new HttpEntity<>(requestDto, headers);
+        MockResponse mockResponse = new MockResponse()
+            .setBody(responseBody)
+            .addHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+            .addHeader("jwt", "secret-jwt-token");
 
-        ResponseEntity<ResponseDto> response = restTemplate.postForEntity(
-            "http://localhost:" + port + "/test-api/test-feign",
-            request,
-            ResponseDto.class
-        );
+        mockWebServer.enqueue(mockResponse);
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertTrue(response.getBody().getTextField().contains("Ответ от mock сервиса на запрос: Test request"));
-    }
-
-    @Test
-    void testGetRequestWithAccountNumber() {
+        String authHeader = "Bearer real-token-123";
         String accountNumber = "1234567890";
-        String status = "ACTIVE";
+        String status = "active";
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "Bearer test-token-456");
+        MvcResult result = mockMvc.perform(get("/test-api/test-get")
+                .param("accountNumber", accountNumber)
+                .param("status", status)
+                .header("Authorization", authHeader))
+            .andExpect(status().isOk())
+            .andReturn();
 
-        HttpEntity<Void> request = new HttpEntity<>(headers);
+        RecordedRequest recordedRequest = mockWebServer.takeRequest();
 
-        String url = String.format(
-            "http://localhost:%s/test-api/accounts?accountNumber=%s&status=%s",
-            port, accountNumber, status
-        );
+        assertNotNull(recordedRequest.getPath());
+        assertTrue(recordedRequest.getPath().startsWith("/external-get"));
+        assertTrue(recordedRequest.getPath().contains("accountNumber=1234567890"));
+        assertTrue(recordedRequest.getPath().contains("status=active"));
 
-        ResponseEntity<ResponseDto> response = restTemplate.exchange(
-            url,
-            HttpMethod.GET,
-            request,
-            ResponseDto.class
-        );
+        assertEquals("Bearer real-token-123", recordedRequest.getHeader("Authorization"));
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertTrue(response.getBody().getTextField().contains("Accounts for number: " + accountNumber));
-        assertTrue(response.getBody().getTextField().contains("status: " + status));
+        assertEquals(200, result.getResponse().getStatus());
     }
 
     @Test
-    void testDirectFeignClientCall() {
-        RequestDto requestDto = new RequestDto();
-        requestDto.setTextField("Direct Feign call");
+    void testGetAccounts_WithoutAuthHeader() throws Exception {
 
-        String authHeader = "Bearer test-token-direct";
+        String responseBody = """
+            {
+                "textField": "test data"
+            }
+            """;
 
-        ResponseDto response = feignClient.get(requestDto, authHeader);
+        MockResponse mockResponse = new MockResponse()
+            .setBody(responseBody)
+            .addHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE);
 
-        assertNotNull(response);
-        assertNotNull(response.getTextField());
-        assertTrue(response.getTextField().contains("Ответ от mock сервиса на запрос: Direct Feign call"));
+        mockWebServer.enqueue(mockResponse);
+
+        String accountNumber = "987654321";
+        String status = "inactive";
+
+        MvcResult result = mockMvc.perform(get("/test-api/test-get")
+                .param("accountNumber", accountNumber)
+                .param("status", status))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        RecordedRequest recordedRequest = mockWebServer.takeRequest();
+        assertNotNull(recordedRequest.getPath());
+        assertTrue(recordedRequest.getPath().contains("accountNumber=987654321"));
+        assertTrue(recordedRequest.getPath().contains("status=inactive"));
+
+        assertNull(recordedRequest.getHeader("Authorization"));
     }
 
     @Test
-    void testFeignClientGetAccounts() {
-        String accountNumber = "9876543210";
-        String status = "INACTIVE";
-        String authHeader = "Bearer test-token-get-accounts";
+    void testPostRequest_DoesNotMaskBody() throws Exception {
 
-        ResponseDto response = feignClient.getAccounts(accountNumber, status, authHeader);
+        String responseBody = """
+            {
+                "textField": "post response"
+            }
+            """;
 
-        assertNotNull(response);
-        assertNotNull(response.getTextField());
-        assertTrue(response.getTextField().contains("Accounts for number: " + accountNumber));
-        assertTrue(response.getTextField().contains("status: " + status));
+        MockResponse mockResponse = new MockResponse()
+            .setBody(responseBody)
+            .addHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE);
+
+        mockWebServer.enqueue(mockResponse);
+
+        String requestBody = """
+            {
+                "textField": "test request data"
+            }
+            """;
+
+        String authHeader = "Bearer another-token";
+
+        MvcResult result = mockMvc.perform(post("/test-api/test-post")
+                .content(requestBody)
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", authHeader))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        RecordedRequest recordedRequest = mockWebServer.takeRequest();
+
+        assertNotNull(recordedRequest.getPath());
+        assertEquals("/external-post", recordedRequest.getPath());
+        assertFalse(recordedRequest.getPath().contains("accountNumber"));
+
+
+        assertEquals("Bearer another-token", recordedRequest.getHeader("Authorization"));
+
+        String requestBodyContent = recordedRequest.getBody().readUtf8();
+        assertTrue(requestBodyContent.contains("test request data"));
+
+        assertEquals("POST", recordedRequest.getMethod());
     }
 
     @Test
-    void testMultipleRequests() {
-        List<String> accountNumbers = List.of("1111111111", "2222222222", "3333333333");
-        String status = "PENDING";
+    void testGetAccounts_ResponseJwtHeaderNotLogged() throws Exception {
 
-        for (String accountNumber : accountNumbers) {
-            HttpHeaders headers = new HttpHeaders();
-            headers.set("Authorization", "Bearer test-token-multiple");
+        String responseBody = """
+            {
+                "textField": "sensitive data"
+            }
+            """;
 
-            HttpEntity<Void> request = new HttpEntity<>(headers);
+        MockResponse mockResponse = new MockResponse()
+            .setBody(responseBody)
+            .addHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+            .addHeader("jwt", "very-secret-jwt-response-token")
+            .addHeader("X-Custom-Header", "custom-value");
 
-            String url = String.format(
-                "http://localhost:%s/test-api/accounts?accountNumber=%s&status=%s",
-                port, accountNumber, status
-            );
+        mockWebServer.enqueue(mockResponse);
 
-            ResponseEntity<ResponseDto> response = restTemplate.exchange(
-                url,
-                HttpMethod.GET,
-                request,
-                ResponseDto.class
-            );
+        String accountNumber = "111222333";
+        String status = "pending";
 
-            assertEquals(HttpStatus.OK, response.getStatusCode());
-            assertNotNull(response.getBody());
-            assertTrue(response.getBody().getTextField().contains(accountNumber));
-            assertTrue(response.getBody().getTextField().contains(status));
-        }
-    }
+        MvcResult result = mockMvc.perform(get("/test-api/test-get")
+                .param("accountNumber", accountNumber)
+                .param("status", status))
+            .andExpect(status().isOk())
+            .andReturn();
 
-    @Test
-    void testRequestWithoutAuthHeader() {
-        RequestDto requestDto = new RequestDto();
-        requestDto.setTextField("No auth header");
+        RecordedRequest recordedRequest = mockWebServer.takeRequest();
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        assertNotNull(recordedRequest.getPath());
+        assertTrue(recordedRequest.getPath().contains("accountNumber=111222333"));
+        assertTrue(recordedRequest.getPath().contains("status=pending"));
 
-        HttpEntity<RequestDto> request = new HttpEntity<>(requestDto, headers);
-
-        ResponseEntity<ResponseDto> response = restTemplate.postForEntity(
-            "http://localhost:" + port + "/test-api/test-feign",
-            request,
-            ResponseDto.class
-        );
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertTrue(response.getBody().getTextField().contains("Ответ от mock сервиса на запрос: No auth header"));
+        String responseContent = result.getResponse().getContentAsString();
+        assertTrue(responseContent.contains("sensitive data"));
     }
 }

@@ -16,7 +16,7 @@ import java.util.regex.Pattern;
 public class FeignLogger extends Logger {
 
     private final FeignLoggerProperties feignLoggerProperties;
-    private final String MASKED_BODY = "[Request/response body is masked]";
+   // private final String MASKED_BODY = "[Request/response body is masked]";
 
     private static final Pattern ACCOUNT_NUMBER_PATTERN =
         Pattern.compile("(accountNumber=)([^&]*)", Pattern.CASE_INSENSITIVE);

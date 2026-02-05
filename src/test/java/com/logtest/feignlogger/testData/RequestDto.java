@@ -1,4 +1,4 @@
-package com.logtest.feignlogger.sample;
+package com.logtest.feignlogger.testData;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

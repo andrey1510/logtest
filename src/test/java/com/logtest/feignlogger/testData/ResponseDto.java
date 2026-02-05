@@ -1,4 +1,4 @@
-package com.logtest.feignlogger;
+package com.logtest.feignlogger.testData;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,7 +9,8 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class RequestDto {
+public class ResponseDto {
 
     private String textField;
 }
+
