@@ -6,9 +6,12 @@ import okhttp3.mockwebserver.RecordedRequest;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -28,6 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
+@ExtendWith(OutputCaptureExtension.class)
 class FeignLoggerIntegrationTest {
 
     private static MockWebServer mockWebServer;
@@ -53,7 +57,7 @@ class FeignLoggerIntegrationTest {
     }
 
     @Test
-    void testGetAccounts_MasksAccountNumberInLogs() throws Exception {
+    void testGetAccounts_MasksAccountNumberInLogs(CapturedOutput output) throws Exception {
 
         String responseBody = """
             {
@@ -85,15 +89,30 @@ class FeignLoggerIntegrationTest {
         assertTrue(recordedRequest.getPath().startsWith("/external-get"));
         assertTrue(recordedRequest.getPath().contains("accountNumber=1234567890"));
         assertTrue(recordedRequest.getPath().contains("status=active"));
-
         assertEquals("Bearer real-token-123", recordedRequest.getHeader("Authorization"));
-
         assertEquals(200, result.getResponse().getStatus());
+
+        String logs = output.getAll();
+
+        assertTrue(logs.contains("accountNumber=**********"),
+            "Логи должны содержать замаскированный accountNumber (**********), но содержат: " + logs);
+
+        assertFalse(logs.contains("accountNumber=1234567890"),
+            "Логи не должны содержать незамаскированный accountNumber");
+
+        assertFalse(logs.contains("Authorization: Bearer real-token-123"),
+            "Логи не должны содержать заголовок Authorization");
+
+        assertFalse(logs.contains("jwt: secret-jwt-token"),
+            "Логи не должны содержать jwt заголовок из ответа");
+
+        assertTrue(logs.contains("---> GET"),
+            "Логи должны содержать информацию о запросе (---> GET)");
     }
 
     @Test
-    void testGetAccounts_WithoutAuthHeader() throws Exception {
-
+    void testGetAccounts_WithoutAuthHeader(CapturedOutput output) throws Exception {
+        // Arrange
         String responseBody = """
             {
                 "textField": "test data"
@@ -106,25 +125,34 @@ class FeignLoggerIntegrationTest {
 
         mockWebServer.enqueue(mockResponse);
 
-        String accountNumber = "987654321";
+        String accountNumber = "987654321"; // 9 символов
         String status = "inactive";
 
+        // Act
         MvcResult result = mockMvc.perform(get("/test-api/test-get")
                 .param("accountNumber", accountNumber)
                 .param("status", status))
             .andExpect(status().isOk())
             .andReturn();
 
+        // Assert
         RecordedRequest recordedRequest = mockWebServer.takeRequest();
         assertNotNull(recordedRequest.getPath());
         assertTrue(recordedRequest.getPath().contains("accountNumber=987654321"));
         assertTrue(recordedRequest.getPath().contains("status=inactive"));
-
         assertNull(recordedRequest.getHeader("Authorization"));
+
+        String logs = output.getAll();
+
+        assertTrue(logs.contains("accountNumber=*********"),
+            "Логи должны содержать замаскированный accountNumber");
+
+        assertTrue(logs.contains("status=inactive"),
+            "Логи должны содержать незамаскированный status");
     }
 
     @Test
-    void testPostRequest_DoesNotMaskBody() throws Exception {
+    void testPostRequest_DoesNotMaskBody(CapturedOutput output) throws Exception {
 
         String responseBody = """
             {
@@ -157,19 +185,24 @@ class FeignLoggerIntegrationTest {
 
         assertNotNull(recordedRequest.getPath());
         assertEquals("/external-post", recordedRequest.getPath());
-        assertFalse(recordedRequest.getPath().contains("accountNumber"));
-
-
         assertEquals("Bearer another-token", recordedRequest.getHeader("Authorization"));
 
         String requestBodyContent = recordedRequest.getBody().readUtf8();
         assertTrue(requestBodyContent.contains("test request data"));
-
         assertEquals("POST", recordedRequest.getMethod());
+
+        String logs = output.getAll();
+
+        assertFalse(logs.contains("accountNumber="),
+            "POST запрос не должен содержать accountNumber");
+
+        assertFalse(logs.contains("Authorization: Bearer another-token"),
+            "Логи не должны содержать заголовок Authorization");
+
     }
 
     @Test
-    void testGetAccounts_ResponseJwtHeaderNotLogged() throws Exception {
+    void testGetAccounts_ResponseJwtHeaderNotLogged(CapturedOutput output) throws Exception {
 
         String responseBody = """
             {
@@ -181,7 +214,7 @@ class FeignLoggerIntegrationTest {
             .setBody(responseBody)
             .addHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
             .addHeader("jwt", "very-secret-jwt-response-token")
-            .addHeader("X-Custom-Header", "custom-value");
+            .addHeader("custom-header", "custom-value");
 
         mockWebServer.enqueue(mockResponse);
 
@@ -202,5 +235,19 @@ class FeignLoggerIntegrationTest {
 
         String responseContent = result.getResponse().getContentAsString();
         assertTrue(responseContent.contains("sensitive data"));
+
+        String logs = output.getAll();
+
+        assertTrue(logs.contains("accountNumber=*********"),
+            "Логи должны содержать замаскированный accountNumber");
+
+        assertFalse(logs.contains("jwt: very-secret-jwt-response-token"),
+            "Логи не должны содержать jwt заголовок из ответа");
+
+        assertTrue(logs.contains("custom-header: custom-value"),
+            "Логи должны содержать не исключенные хедеры)");
+
+        assertTrue(logs.contains("<--- HTTP") || logs.contains("END HTTP"),
+            "Логи должны содержать информацию об ответе");
     }
 }
