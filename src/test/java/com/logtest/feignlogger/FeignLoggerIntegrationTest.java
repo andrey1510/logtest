@@ -1,6 +1,11 @@
 package com.logtest.feignlogger;
 
+import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import lombok.SneakyThrows;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -8,7 +13,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -16,6 +20,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.web.client.RestTemplate;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
@@ -32,7 +38,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureWireMock(port = 8889)
 @ActiveProfiles("test")
 @ExtendWith(OutputCaptureExtension.class)
 class FeignLoggerIntegrationTest {
@@ -40,6 +45,7 @@ class FeignLoggerIntegrationTest {
     @LocalServerPort
     private int serverPort;
 
+    private static WireMockServer wireMockServer;
     private RestTemplate restTemplate;
     private String baseUrl;
 
@@ -55,10 +61,32 @@ class FeignLoggerIntegrationTest {
         }
         """;
 
+
+    @BeforeAll
+    static void startWireMock() {
+        wireMockServer = new WireMockServer(WireMockConfiguration.options().dynamicPort());
+        wireMockServer.start();
+        WireMock.configureFor("localhost", wireMockServer.port());
+    }
+
+    @AfterAll
+    static void stopWireMock() {
+        if (wireMockServer != null) wireMockServer.stop();
+    }
+
+    @DynamicPropertySource
+    static void configureProperties(DynamicPropertyRegistry registry) {
+        registry.add("external-mock-service.url",
+            () -> "http://localhost:" + wireMockServer.port());
+    }
+
     @BeforeEach
     void setUp() {
         restTemplate = new RestTemplate();
         baseUrl = "http://localhost:" + serverPort;
+
+        WireMock.reset();
+        wireMockServer.resetAll();
     }
 
     @Test

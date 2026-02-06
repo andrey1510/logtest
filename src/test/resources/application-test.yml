@@ -19,6 +19,3 @@ service-name:
   feign-logger:
     should-not-log-request-headers: Authorization, jwt
     should-not-log-response-headers: jwt
-
-external-mock-service:
-  url: http://localhost:8889
