@@ -4,15 +4,16 @@ spring:
       client:
         config:
           default:
-            logger-level: FULL
+            logger-level: HEADERS
+  application:
+    name: logtest
 
-external-mock-service:
-  url: http://localhost:${wiremock.server.port}
 logging:
   level:
     com.logtest.feignlogger: DEBUG
     feign.Logger: DEBUG
     org.springframework.cloud.openfeign: DEBUG
+
 service-name:
   feign-logger:
     should-not-log-request-headers: Authorization, jwt

@@ -8,17 +8,17 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @org.springframework.cloud.openfeign.FeignClient(name = "external-mock-service", url = "${external-mock-service.url}")
-public interface FeignClient {
+public interface TestFeignClient {
 
     String AUTHORIZATION_HEADER = "Authorization";
 
-    @PostMapping(value = "/external-post", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/external-post-endpoint", produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseDto postExternal(
         @RequestBody RequestDto request,
         @RequestHeader(name = AUTHORIZATION_HEADER, required = false) String token
     );
 
-    @GetMapping(value = "/external-get", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/external-get-endpoint", produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseDto getExternal(
         @RequestParam("accountNumber") String accountNumber,
         @RequestParam("status") String status,

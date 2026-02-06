@@ -14,17 +14,17 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/test-api")
-public class SampleController {
+@RequestMapping("/launch-feign")
+public class TestController {
 
-    private final FeignClient feignClient;
+    private final TestFeignClient testFeignClient;
 
     @PostMapping("/test-post")
     public ResponseEntity<ResponseDto> testPost(
         @RequestBody RequestDto request,
         @RequestHeader(value = "Authorization", required = false) String authHeader
     ) {
-        ResponseDto response = feignClient.postExternal(request, authHeader);
+        ResponseDto response = testFeignClient.postExternal(request, authHeader);
         return ResponseEntity.ok(response);
     }
 
@@ -36,7 +36,7 @@ public class SampleController {
     ) {
         log.info("Getting accounts. AccountNumber: {}, Status: {}", accountNumber, status);
 
-        ResponseDto response = feignClient.getExternal(accountNumber, status, authHeader);
+        ResponseDto response = testFeignClient.getExternal(accountNumber, status, authHeader);
         return ResponseEntity.ok(response);
     }
 

@@ -4,7 +4,7 @@ spring:
       client:
         config:
           default:
-            logger-level: FULL
+            logger-level: HEADERS
           sample-external-service:
             logger-level: FULL
   application:
