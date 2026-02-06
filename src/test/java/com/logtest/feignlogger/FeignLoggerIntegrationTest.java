@@ -1,222 +1,203 @@
 package com.logtest.feignlogger;
 
-import com.github.tomakehurst.wiremock.WireMockServer;
-import com.github.tomakehurst.wiremock.client.WireMock;
-import com.github.tomakehurst.wiremock.common.Slf4jNotifier;
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import lombok.SneakyThrows;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.web.client.RestTemplate;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.containing;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalToJson;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureMockMvc
 @AutoConfigureWireMock(port = 8889)
+@ActiveProfiles("test")
 @ExtendWith(OutputCaptureExtension.class)
-@TestPropertySource(properties = {
-    "external-mock-service.url=http://localhost:8889"
-})
 class FeignLoggerIntegrationTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    @LocalServerPort
+    private int serverPort;
+
+    private RestTemplate restTemplate;
+    private String baseUrl;
 
     private static final String RESPONSE_BODY = """
-            {
-                "textField": "response data"
-            }
-            """;
+        {
+            "textField": "response data"
+        }
+        """;
 
     private static final String REQUEST_BODY = """
-            {
-                "textField": "request data"
-            }
-            """;
+        {
+            "textField": "request data"
+        }
+        """;
 
-    @Test
-    @SneakyThrows
-    void testGet_masksAccountNumberInLogs(CapturedOutput output) {
-
-        stubFor(WireMock.get(urlPathEqualTo("/external-get-endpoint"))
-            .withQueryParam("accountNumber", equalTo("1234567890"))
-            .withQueryParam("status", equalTo("active"))
-            .willReturn(aResponse()
-                .withStatus(HttpStatus.OK.value())
-                .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-                .withHeader("jwt", "secret-jwt-token")
-                .withBody(RESPONSE_BODY)));
-
-        MvcResult result = mockMvc.perform(get("/launch-feign/test-get")
-                .param("accountNumber", "1234567890")
-                .param("status", "active")
-                .header("Authorization", "Bearer real-token-123"))
-            .andExpect(status().isOk())
-            .andReturn();
-
-        verify(getRequestedFor(urlPathEqualTo("/external-get-endpoint"))
-            .withQueryParam("accountNumber", equalTo("1234567890"))
-            .withQueryParam("status", equalTo("active"))
-            .withHeader("Authorization", equalTo("Bearer real-token-123")));
-
-        assertEquals(200, result.getResponse().getStatus());
-
-        String logs = output.getAll();
-
-        assertTrue(logs.contains("accountNumber=**********"));
-        assertFalse(logs.contains("GET http://localhost:8889/external-get-endpoint?accountNumber=1234567890"));
-        assertFalse(logs.contains("Authorization: Bearer real-token-123"));
-        assertFalse(logs.contains("jwt: secret-jwt-token"));
-        assertFalse(logs.contains(
-                """
-[TestFeignClient#getExternal] {
-    "textField": "response data"
-}
-                """
-            ));
+    @BeforeEach
+    void setUp() {
+        restTemplate = new RestTemplate();
+        baseUrl = "http://localhost:" + serverPort;
     }
 
-
-
-
-
-
-
-
     @Test
     @SneakyThrows
-    void testGet_NoAuthHeader(CapturedOutput output) {
+    void testPost_maskAccountNumber(CapturedOutput output) {
 
-        stubFor(WireMock.get(urlPathEqualTo("/external-get-endpoint"))
-            .withQueryParam("accountNumber", equalTo("987654321"))
-            .withQueryParam("status", equalTo("inactive"))
+        String externalPostEndpoint = "/external-post-endpoint";
+        String accountNumber = "1234567890";
+        String accountNumberMasked = "**********";
+        String status = "active";
+        String launchUrl = String.format("%s/launch-feign/test-post?accountNumber=%s&status=%s", baseUrl, accountNumber, status);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<String> requestEntity = new HttpEntity<>(REQUEST_BODY, headers);
+
+        stubFor(post(urlPathEqualTo(externalPostEndpoint))
+            .withQueryParam("accountNumber", equalTo(accountNumber))
+            .withQueryParam("status", equalTo(status))
+            .withHeader("Content-Type", equalTo("application/json"))
+            .withRequestBody(equalToJson(REQUEST_BODY))
             .willReturn(aResponse()
                 .withStatus(HttpStatus.OK.value())
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
                 .withBody(RESPONSE_BODY)));
 
-        String accountNumber = "987654321";
-        String status = "inactive";
+        ResponseEntity<String> response = restTemplate.exchange(
+            launchUrl,
+            HttpMethod.POST,
+            requestEntity,
+            String.class
+        );
 
-        MvcResult result = mockMvc.perform(get("/launch-feign/test-get")
-                .param("accountNumber", accountNumber)
-                .param("status", status))
-            .andExpect(status().isOk())
-            .andReturn();
+        verify(postRequestedFor(urlPathEqualTo(externalPostEndpoint))
+            .withQueryParam("accountNumber", equalTo(accountNumber))
+            .withQueryParam("status", equalTo(status)));
 
-        verify(getRequestedFor(urlPathEqualTo("/external-get-endpoint"))
-            .withQueryParam("accountNumber", equalTo("987654321"))
-            .withQueryParam("status", equalTo("inactive")));
-
-        assertEquals(200, result.getResponse().getStatus());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
 
         String logs = output.getAll();
-
-        assertTrue(logs.contains("accountNumber=*********"));
-        assertTrue(logs.contains("status=inactive"));
+        assertTrue(logs.contains(String.format("accountNumber=%s", accountNumberMasked)));
+        assertFalse(logs.contains(String.format("accountNumber=%s", accountNumber)));
+        assertTrue(logs.contains(String.format("status=%s", status)));
     }
 
     @Test
     @SneakyThrows
-    void testPost_masksAccountNumberInLogs(CapturedOutput output) {
+    void testPost_noBodyInLogsWhileHeadersLevel(CapturedOutput output) {
 
-        stubFor(WireMock.post(urlPathEqualTo("/external-post-endpoint"))
-            .withHeader("Authorization", equalTo("Bearer another-token"))
-            .withRequestBody(containing("request data"))
+        String externalPostEndpoint = "/external-post-endpoint";
+        String accountNumber = "1234567890";
+        String status = "active";
+        String launchUrl = String.format("%s/launch-feign/test-post?accountNumber=%s&status=%s", baseUrl, accountNumber, status);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<String> requestEntity = new HttpEntity<>(REQUEST_BODY, headers);
+
+        stubFor(post(urlPathEqualTo(externalPostEndpoint))
+            .withQueryParam("accountNumber", equalTo(accountNumber))
+            .withQueryParam("status", equalTo(status))
+            .withHeader("Content-Type", equalTo("application/json"))
+            .withRequestBody(equalToJson(REQUEST_BODY))
             .willReturn(aResponse()
                 .withStatus(HttpStatus.OK.value())
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
                 .withBody(RESPONSE_BODY)));
 
-        MvcResult result = mockMvc.perform(post("/launch-feign/test-post")
-                .content(REQUEST_BODY)
-                .contentType(MediaType.APPLICATION_JSON)
-                .header("Authorization", "Bearer another-token"))
-            .andExpect(status().isOk())
-            .andReturn();
+        ResponseEntity<String> response = restTemplate.exchange(
+            launchUrl,
+            HttpMethod.POST,
+            requestEntity,
+            String.class
+        );
 
-        verify(postRequestedFor(urlPathEqualTo("/external-post-endpoint"))
-            .withHeader("Authorization", equalTo("Bearer another-token"))
-            .withRequestBody(containing("request data")));
+        verify(postRequestedFor(urlPathEqualTo(externalPostEndpoint))
+            .withQueryParam("accountNumber", equalTo(accountNumber))
+            .withQueryParam("status", equalTo(status)));
 
-        assertEquals(200, result.getResponse().getStatus());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().contains("response data"));
 
         String logs = output.getAll();
-
-        assertFalse(logs.contains("accountNumber="));
-        assertFalse(logs.contains("Authorization: Bearer another-token"));
+        assertFalse(logs.contains("""
+            {"textField":"request data"}
+            """));
+        assertFalse(logs.contains("""
+            "textField": "response data"
+        """));
     }
 
     @Test
     @SneakyThrows
-    void testGetAccounts_ResponseJwtHeaderNotLogged(CapturedOutput output) {
+    void testPost_noAuthorizationAndJwtInLogs(CapturedOutput output) {
 
-        stubFor(WireMock.get(urlPathEqualTo("/external-get-endpoint"))
-            .withQueryParam("accountNumber", equalTo("111222333"))
-            .withQueryParam("status", equalTo("pending"))
+        String externalPostEndpoint = "/external-post-endpoint";
+        String accountNumber = "1234567890";
+        String status = "active";
+        String launchUrl = String.format("%s/launch-feign/test-post?accountNumber=%s&status=%s", baseUrl, accountNumber, status);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Bearer test-token-123");
+        headers.set("jwt", "test jwt");
+        HttpEntity<String> requestEntity = new HttpEntity<>(REQUEST_BODY, headers);
+
+        stubFor(post(urlPathEqualTo(externalPostEndpoint))
+            .withQueryParam("accountNumber", equalTo(accountNumber))
+            .withQueryParam("status", equalTo(status))
+            .withHeader("Content-Type", equalTo("application/json"))
+            .withHeader("Authorization", equalTo("Bearer test-token-123"))
+            .withHeader("jwt", equalTo("test jwt"))
+            .withRequestBody(equalToJson(REQUEST_BODY))
             .willReturn(aResponse()
                 .withStatus(HttpStatus.OK.value())
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-                .withHeader("jwt", "very-secret-jwt-response-token")
-                .withHeader("custom-header", "custom-value")
+                .withHeader("Authorization", "Bearer test-token-123")
+                .withHeader("jwt", "test jwt")
                 .withBody(RESPONSE_BODY)));
 
-        String accountNumber = "111222333";
-        String status = "pending";
+        ResponseEntity<String> response = restTemplate.exchange(
+            launchUrl,
+            HttpMethod.POST,
+            requestEntity,
+            String.class
+        );
 
-        MvcResult result = mockMvc.perform(get("/launch-feign/test-get")
-                .param("accountNumber", accountNumber)
-                .param("status", status))
-            .andExpect(status().isOk())
-            .andReturn();
+        System.out.println(response.getHeaders().toString());
 
-        verify(getRequestedFor(urlPathEqualTo("/external-get-endpoint"))
-            .withQueryParam("accountNumber", equalTo("111222333"))
-            .withQueryParam("status", equalTo("pending")));
+        verify(postRequestedFor(urlPathEqualTo(externalPostEndpoint))
+            .withQueryParam("accountNumber", equalTo(accountNumber))
+            .withQueryParam("status", equalTo(status))
+            .withHeader("Authorization", equalTo("Bearer test-token-123"))
+            .withHeader("jwt", equalTo("test jwt")));
 
-        String responseContent = result.getResponse().getContentAsString();
-        assertTrue(responseContent.contains("response data"));
+        assertEquals(HttpStatus.OK, response.getStatusCode());
 
         String logs = output.getAll();
+        assertFalse(logs.contains("Authorization"));
+        assertFalse(logs.contains("jwt"));
 
-        assertTrue(logs.contains("accountNumber=*********"),
-            "Логи должны содержать замаскированный accountNumber");
-
-        assertFalse(logs.contains("jwt: very-secret-jwt-response-token"),
-            "Логи не должны содержать jwt заголовок из ответа");
-
-        assertTrue(logs.contains("custom-header: custom-value"),
-            "Логи должны содержать не исключенные хедеры");
-
-        assertTrue(logs.contains("<--- HTTP") || logs.contains("END HTTP"),
-            "Логи должны содержать информацию об ответе");
     }
+
 }

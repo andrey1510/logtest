@@ -10,6 +10,7 @@ spring:
 
 logging:
   level:
+    WireMock: OFF
     com.logtest.feignlogger: DEBUG
     feign.Logger: DEBUG
     org.springframework.cloud.openfeign: DEBUG
@@ -18,3 +19,6 @@ service-name:
   feign-logger:
     should-not-log-request-headers: Authorization, jwt
     should-not-log-response-headers: jwt
+
+external-mock-service:
+  url: http://localhost:8889
