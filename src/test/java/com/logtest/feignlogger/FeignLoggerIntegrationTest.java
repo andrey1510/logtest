@@ -3,26 +3,24 @@ package com.logtest.feignlogger;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+import com.logtest.feignlogger.testData.RequestDto;
+import com.logtest.feignlogger.testData.ResponseDto;
+import com.logtest.feignlogger.testData.TestFeignClient;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
-import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.web.client.RestTemplate;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
@@ -37,17 +35,15 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @ActiveProfiles("test")
 @ExtendWith(OutputCaptureExtension.class)
 class FeignLoggerIntegrationTest {
 
-    @LocalServerPort
-    private int serverPort;
-
     private static WireMockServer wireMockServer;
-    private RestTemplate restTemplate;
-    private String baseUrl;
+
+    @Autowired
+    private TestFeignClient testFeignClient;
 
     private static final String RESPONSE_BODY = """
         {
@@ -82,9 +78,6 @@ class FeignLoggerIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        restTemplate = new RestTemplate();
-        baseUrl = "http://localhost:" + serverPort;
-
         WireMock.reset();
         wireMockServer.resetAll();
     }
@@ -97,10 +90,6 @@ class FeignLoggerIntegrationTest {
         String accountNumber = "1234567890";
         String accountNumberMasked = "**********";
         String status = "active";
-        String launchUrl = String.format("%s/launch-feign/test-post?accountNumber=%s&status=%s", baseUrl, accountNumber, status);
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<String> requestEntity = new HttpEntity<>(REQUEST_BODY, headers);
 
         stubFor(post(urlPathEqualTo(externalPostEndpoint))
             .withQueryParam("accountNumber", equalTo(accountNumber))
@@ -112,18 +101,20 @@ class FeignLoggerIntegrationTest {
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
                 .withBody(RESPONSE_BODY)));
 
-        ResponseEntity<String> response = restTemplate.exchange(
-            launchUrl,
-            HttpMethod.POST,
-            requestEntity,
-            String.class
+        ResponseDto response = testFeignClient.postExternal(
+            accountNumber,
+            status,
+            "Bearer test-token-123",
+            "test jwt",
+            new RequestDto("request data")
         );
 
         verify(postRequestedFor(urlPathEqualTo(externalPostEndpoint))
             .withQueryParam("accountNumber", equalTo(accountNumber))
             .withQueryParam("status", equalTo(status)));
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response);
+        assertEquals("response data", response.getTextField());
 
         String logs = output.getAll();
         assertTrue(logs.contains(String.format("accountNumber=%s", accountNumberMasked)));
@@ -138,10 +129,6 @@ class FeignLoggerIntegrationTest {
         String externalPostEndpoint = "/external-post-endpoint";
         String accountNumber = "1234567890";
         String status = "active";
-        String launchUrl = String.format("%s/launch-feign/test-post?accountNumber=%s&status=%s", baseUrl, accountNumber, status);
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<String> requestEntity = new HttpEntity<>(REQUEST_BODY, headers);
 
         stubFor(post(urlPathEqualTo(externalPostEndpoint))
             .withQueryParam("accountNumber", equalTo(accountNumber))
@@ -153,20 +140,20 @@ class FeignLoggerIntegrationTest {
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
                 .withBody(RESPONSE_BODY)));
 
-        ResponseEntity<String> response = restTemplate.exchange(
-            launchUrl,
-            HttpMethod.POST,
-            requestEntity,
-            String.class
+        ResponseDto response = testFeignClient.postExternal(
+            accountNumber,
+            status,
+            "Bearer test-token-123",
+            "test jwt",
+            new RequestDto("request data")
         );
 
         verify(postRequestedFor(urlPathEqualTo(externalPostEndpoint))
             .withQueryParam("accountNumber", equalTo(accountNumber))
             .withQueryParam("status", equalTo(status)));
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertTrue(response.getBody().contains("response data"));
+        assertNotNull(response);
+        assertEquals("response data", response.getTextField());
 
         String logs = output.getAll();
         assertFalse(logs.contains("""
@@ -184,12 +171,6 @@ class FeignLoggerIntegrationTest {
         String externalPostEndpoint = "/external-post-endpoint";
         String accountNumber = "1234567890";
         String status = "active";
-        String launchUrl = String.format("%s/launch-feign/test-post?accountNumber=%s&status=%s", baseUrl, accountNumber, status);
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("Authorization", "Bearer test-token-123");
-        headers.set("jwt", "test jwt");
-        HttpEntity<String> requestEntity = new HttpEntity<>(REQUEST_BODY, headers);
 
         stubFor(post(urlPathEqualTo(externalPostEndpoint))
             .withQueryParam("accountNumber", equalTo(accountNumber))
@@ -205,14 +186,13 @@ class FeignLoggerIntegrationTest {
                 .withHeader("jwt", "test jwt")
                 .withBody(RESPONSE_BODY)));
 
-        ResponseEntity<String> response = restTemplate.exchange(
-            launchUrl,
-            HttpMethod.POST,
-            requestEntity,
-            String.class
+        ResponseDto response = testFeignClient.postExternal(
+            accountNumber,
+            status,
+            "Bearer test-token-123",
+            "test jwt",
+            new RequestDto("request data")
         );
-
-        System.out.println(response.getHeaders().toString());
 
         verify(postRequestedFor(urlPathEqualTo(externalPostEndpoint))
             .withQueryParam("accountNumber", equalTo(accountNumber))
@@ -220,7 +200,8 @@ class FeignLoggerIntegrationTest {
             .withHeader("Authorization", equalTo("Bearer test-token-123"))
             .withHeader("jwt", equalTo("test jwt")));
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response);
+        assertEquals("response data", response.getTextField());
 
         String logs = output.getAll();
         assertFalse(logs.contains("Authorization"));
